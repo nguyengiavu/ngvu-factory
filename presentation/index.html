@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ngvu-ai-factory</title>
+<!-- Theme: dark-cyan deck theme (deck-theme-v1). Self-contained, no external resources. -->
+<style>
+:root{
+  --bg:#07111f;--panel:#0d1b2a;--panel2:#10253b;--text:#eef6ff;
+  --muted:#9bb2c7;--accent:#6ee7ff;--accent2:#fbbf24;
+  --green:#34d399;--red:#fb7185;--purple:#a78bfa;--line:#24445f;--code:#071827;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:radial-gradient(circle at 20% 0,#163452,#07111f 42%,#050912);
+  font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text);overflow:hidden}
+#deck{width:100vw;height:100vh;position:relative}
+.slide{display:none;width:100%;height:100%;padding:52px 74px 68px;position:absolute;inset:0;overflow-y:auto;
+  background:linear-gradient(135deg,rgba(255,255,255,.035),rgba(255,255,255,.01))}
+.slide.active{display:block;animation:fade .22s ease-out}
+@keyframes fade{from{opacity:.2;transform:translateY(8px)}to{opacity:1;transform:none}}
+.kicker{text-transform:uppercase;letter-spacing:.18em;color:var(--accent);font-size:13px;font-weight:800}
+h1{font-size:44px;line-height:1.08;margin:5px 0 24px;letter-spacing:-.03em}
+.title-slide h1{font-size:58px}
+h3{font-size:22px;margin:0 0 10px;color:#d9eeff}
+.content{font-size:20px;line-height:1.45}
+p{margin:0 0 14px} ul,ol{margin:8px 0 0 24px} li{margin:6px 0}
+.muted,small{color:var(--muted)}
+.slide-num{position:absolute;right:34px;top:28px;color:#6b86a2;font-weight:700}
+.card{background:rgba(15,35,56,.9);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 16px 40px rgba(0,0,0,.25)}
+.card.good{border-color:#16694f}.card.bad{border-color:#7f1d1d}.card.gate{border-color:#8a6a12}
+.card h3 small{font-size:14px;font-weight:600;margin-left:6px}
+.columns{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}.columns.two{grid-template-columns:repeat(2,1fr)}.columns.four{grid-template-columns:repeat(4,1fr)}
+.note,.callout{margin-top:22px;background:#0c2236;border-left:6px solid var(--accent);padding:16px 22px;border-radius:14px}
+.callout.gate{border-left-color:var(--accent2)}.callout.danger{border-left-color:var(--red);background:#2a111a}
+.pillrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+.pillrow span{background:#15324e;border:1px solid #2b5272;color:#d5f5ff;border-radius:999px;padding:7px 12px;font-size:14px;font-weight:700}
+.hero-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:36px;align-items:center;height:72%}
+.hero-card{background:linear-gradient(135deg,#132f4f,#111827);padding:32px;border:1px solid var(--line);border-radius:28px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.big-quote{font-size:28px;color:var(--accent2);font-weight:900;line-height:1.25}
+pre{margin:8px 0 14px;background:#061624;border:1px solid #1f3d56;border-radius:16px;padding:16px;white-space:pre-wrap;overflow:auto}
+code{font-family:Cascadia Code,Consolas,monospace;color:#b8f7ff;font-size:.9em}
+pre code{font-size:17px}
+.matrix{width:100%;border-collapse:collapse;background:rgba(10,25,42,.75);border-radius:18px;overflow:hidden;font-size:18px}
+.matrix th{background:#12314e;color:#e6f6ff;text-align:left;padding:12px}
+.matrix td{border-top:1px solid #1e3b55;padding:11px;vertical-align:top}
+.matrix tr:nth-child(even) td{background:rgba(255,255,255,.025)}
+.matrix .ok{color:var(--green);font-weight:700}.matrix .no{color:var(--red);font-weight:700}
+.flowline{display:flex;align-items:stretch;gap:8px;margin:12px 0 26px}
+.flowline div{flex:1;min-width:0;text-align:center;border:1px solid #2a506f;background:#0d2438;padding:12px 8px;border-radius:16px;font-size:17px;font-weight:700}
+.flowline div small{display:block;font-weight:400;font-size:13px;margin-top:4px}
+.flowline div.you{border-color:var(--accent2);border-style:dashed;color:var(--accent2)}
+.flowline div.agent{border-color:var(--purple)}
+.flowline div.ok{border-color:var(--green);color:var(--green)}
+.flowline span{align-self:center;color:var(--accent);font-weight:900;font-size:22px}
+.timeline{display:grid;gap:12px}
+.timeline div{display:grid;grid-template-columns:240px 1fr;gap:18px;background:#0c2236;border:1px solid #22445f;border-radius:18px;padding:14px 18px;font-size:18px}
+.timeline b{color:var(--accent2)}.timeline div.ok{border-color:#16694f}.timeline div.ok b{color:var(--green)}
+.trig{counter-reset:t;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.trig div{background:#0d2438;border:1px solid #274963;border-radius:18px;padding:16px;font-size:17px;counter-increment:t}
+.trig div::before{content:counter(t);display:block;color:var(--accent2);font-weight:900;font-size:24px;margin-bottom:4px}
+
+/* Agent trigger diagram: flowing lines, moving tickets, pulsing outcomes */
+.diagram{height:calc(100vh - 250px);min-height:420px}
+.diagram svg{width:100%;height:100%;display:block}
+.d-box{fill:var(--panel2);stroke-width:1.8}
+.d-orch{stroke:var(--accent)}.d-agent{stroke:var(--purple)}.d-human{stroke:var(--accent2);stroke-dasharray:6 4}
+.d-opt{stroke-dasharray:5 4}
+.d-ready{stroke:var(--green);stroke-width:2.6;animation:pulse-good 2.4s ease-in-out infinite}
+.d-stop{stroke:var(--red);stroke-width:2.6;animation:pulse-bad 2.4s ease-in-out infinite 1.2s}
+.d-join{fill:var(--accent);animation:blink 1.6s ease-in-out infinite}
+.d-line{fill:none;stroke-width:1.7}
+.d-flow{stroke:var(--muted);stroke-dasharray:9 5;animation:flow 1.4s linear infinite}
+.d-loop{stroke:var(--accent);stroke-width:2.2;stroke-dasharray:9 5;animation:flow .9s linear infinite}
+.d-block{stroke:var(--red);stroke-dasharray:4 5;animation:flow 2.2s linear infinite}
+.d-you{stroke:var(--accent2);stroke-dasharray:6 4;animation:flow 1.8s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-28}}
+@keyframes pulse-good{50%{stroke-width:4.5;filter:drop-shadow(0 0 7px var(--green))}}
+@keyframes pulse-bad{50%{stroke-width:4.5;filter:drop-shadow(0 0 7px var(--red))}}
+@keyframes blink{50%{opacity:.35}}
+.m-flow{fill:var(--muted)}.m-loop{fill:var(--accent)}.m-block{fill:var(--red)}.m-you{fill:var(--accent2)}
+.t{fill:var(--text);font:700 14px Inter,Segoe UI,Arial,sans-serif}
+.s{fill:var(--muted);font:10.5px Cascadia Code,Consolas,monospace}
+.lab{font:12px Inter,Segoe UI,Arial,sans-serif}
+.lab-flow{fill:var(--muted)}.lab-loop{fill:var(--accent)}.lab-block{fill:var(--red)}.lab-you{fill:var(--accent2)}
+.token{fill:var(--accent);filter:drop-shadow(0 0 5px var(--accent))}
+.token-loop{fill:var(--accent);opacity:.85}
+.token-bad{fill:var(--red);filter:drop-shadow(0 0 5px var(--red))}
+.legend-line{fill:none;stroke-width:2.6}
+@media (prefers-reduced-motion:reduce){
+  .slide.active,.d-flow,.d-loop,.d-block,.d-you,.d-ready,.d-stop,.d-join{animation:none}
+  .token,.token-loop,.token-bad{display:none}
+}
+
+#controls{position:fixed;left:0;right:0;bottom:0;height:48px;background:rgba(2,8,15,.82);backdrop-filter:blur(10px);
+  display:flex;align-items:center;gap:12px;padding:8px 18px;border-top:1px solid #16324b;z-index:10}
+#controls button{background:#0d273e;color:#e8f7ff;border:1px solid #2b4f6c;border-radius:12px;padding:8px 14px;font-weight:800;cursor:pointer}
+#controls button:hover{background:#16405f}
+.progress{height:6px;background:#12314e;flex:1;border-radius:999px;overflow:hidden}
+.bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:.15s}
+#counter{color:var(--muted);font-weight:700;min-width:64px;text-align:right}
+#toc{position:fixed;right:18px;top:70px;width:340px;max-height:76vh;overflow:auto;background:rgba(5,13,23,.95);
+  border:1px solid var(--line);border-radius:18px;padding:10px;display:none;z-index:11}
+#toc.open{display:block}
+#toc button{display:block;width:100%;text-align:left;margin:4px 0;background:#0d2438;color:#dcefff;
+  border:1px solid #203d55;border-radius:10px;padding:8px;font-size:13px;cursor:pointer}
+#toc button.active{background:#15496b;color:#fff;border-color:var(--accent)}
+#toc button.sel{outline:2px solid var(--accent2);outline-offset:1px}
+#toc .toc-hint{color:var(--muted);font-size:12px;padding:6px 4px 2px}
+
+@media (max-width:900px){
+  .slide{padding:40px 16px 70px}
+  h1{font-size:32px}.title-slide h1{font-size:40px}.content{font-size:17px}
+  .columns,.columns.two,.columns.four,.trig,.hero-grid{grid-template-columns:1fr;height:auto}
+  .flowline{flex-wrap:wrap}.flowline div{flex:1 1 40%}.flowline span{display:none}
+  .timeline div{grid-template-columns:1fr;gap:4px}
+  .matrix{font-size:15px}
+  .diagram{height:auto;overflow-x:auto}.diagram svg{min-width:760px;height:auto}
+}
+@media print{
+  body{overflow:visible;background:#07111f}
+  .slide{display:block;position:relative;page-break-after:always;height:100vh;overflow:visible}
+  #controls,#toc,.slide-num{display:none}
+}
+</style>
+</head>
+<body>
+<div id="deck">
+
+<section class="slide title-slide" data-title="ngvu-ai-factory">
+  <div class="slide-num">01 / 16</div>
+  <div class="kicker">ngvu-factory 0.1.0 (2026-11-06)</div>
+  <div class="hero-grid">
+    <div>
+      <h1>ngvu-ai-factory</h1>
+      <p class="content">From a VUNG ticket to a pushed branch with a PR link, and on to a verified change. Installed the same way on every team machine.</p>
+      <div class="pillrow"><span>3 plugins</span><span>Jira read-only</span><span>investigation first</span><span>4+1 review lenses</span><span>8 escalation triggers</span><span>you open and merge the PR</span></div>
+    </div>
+    <div class="hero-card">
+      <div class="big-quote">Ask, do not assume.</div>
+      <p class="muted" style="margin-top:14px">Every stop names its reason. Every approval, merge and Jira change is yours.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="Why one repo">
+  <div class="slide-num">02 / 16</div>
+  <div class="kicker">What is in 0.1.0</div>
+  <h1>Why one repo</h1>
+  <div class="content timeline">
+    <div><b>Ticket and epic loop</b><span>Four review lenses</span></div>
+    <div><b>Next.js, guardrails and follow-up</b><span>Next.js repos, fifth lens, guard hook, plugins, evals, human-run ITs, pr-feedback, verify, triage, cost, retro</span></div>
+    <div><b>Review and PR flow</b><span>Review guard, close, open-question gate, push -&gt; PR flow</span></div>
+    <div class="ok"><b>Packaging</b><span>One plugin marketplace, checked against the current Claude Code docs; deploy kit for every machine</span></div>
+  </div>
+  <div class="callout gate">One source of truth: change the factory on a branch of this repo, run <code>tests/selftest.sh</code>, open a PR. Teammates pull and re-run bootstrap.</div>
+</section>
+
+<section class="slide" data-title="What you install">
+  <div class="slide-num">03 / 16</div>
+  <div class="kicker">Contents</div>
+  <h1>What you install</h1>
+  <div class="content columns">
+    <div class="card"><h3>ngvu-factory <small>plugin</small></h3><code>/ngvu-factory:ngvu-factory</code>, <code>ngvu-ticket-investigation</code>, <code>ngvu-epic-investigation</code>, <code>ngvu-triage</code>, 8 agents (spec-writer, builder, 5 lenses, approver), scripts and templates.</div>
+    <div class="card"><h3>ngvu-engineering <small>plugin</small></h3>29 ngvu skills: <code>pr-review</code>, <code>daily-router</code>, <code>ticket-workflow</code>, database, cloud and GKE, logs, architecture, security.</div>
+    <div class="card gate"><h3>core-governance <small>plugin</small></h3>Two PreToolUse guards that fail closed, governance skills, <code>ngvu-project-stack</code>.</div>
+  </div>
+  <div class="content columns two" style="margin-top:22px">
+    <div class="card"><h3>~/.claude/rules</h3>GLOBAL-RULES and the four policies. Plugins cannot ship always-loaded rules, so bootstrap copies them.</div>
+    <div class="card"><h3>~/.claude/ngvu-factory/machine.json</h3>Your workspace, team and paths, merged over the bundled config; survives every plugin update.</div>
+  </div>
+</section>
+
+<section class="slide" data-title="Install on a machine">
+  <div class="slide-num">04 / 16</div>
+  <div class="kicker">Deploy kit</div>
+  <h1>Install on a machine</h1>
+  <div class="content">
+    <div class="flowline">
+      <div>Prerequisites<small>git, python, Claude Code 2.1.295+</small></div><span>&rarr;</span>
+      <div>Marketplace<small>from your clone</small></div><span>&rarr;</span>
+      <div>3 plugins<small>user scope</small></div><span>&rarr;</span>
+      <div>Rules<small>backup on change</small></div><span>&rarr;</span>
+      <div>machine.json<small>your workspace</small></div><span>&rarr;</span>
+      <div>Settings<small>Jira write denies</small></div><span>&rarr;</span>
+      <div class="you">Old copies<small>moved aside</small></div><span>&rarr;</span>
+      <div class="ok">doctor</div>
+    </div>
+<pre><code>git clone https://github.com/nguyengiavu/ngvu-factory.git &lt;any folder&gt;
+.\deploy\ngvu-kit.ps1 bootstrap -Team &lt;team&gt; -DryRun   # read the plan first
+.\deploy\ngvu-kit.ps1 bootstrap -Team &lt;team&gt; -Workspace &lt;your workspace root&gt;
+.\deploy\ngvu-kit.ps1 doctor                   # any time: OK / WARN / FAIL
+git pull; .\deploy\ngvu-kit.ps1 bootstrap      # update</code></pre>
+    <div class="note">Nothing is deleted: changed rules go to <code>rules.bak-&lt;time&gt;</code>, old user-level skills and agents to <code>ngvu-legacy-&lt;time&gt;</code>. Full guide: <code>deploy/README.md</code>.</div>
+  </div>
+</section>
+
+<section class="slide" data-title="Ticket flow">
+  <div class="slide-num">05 / 16</div>
+  <div class="kicker">One ticket</div>
+  <h1>Ticket flow</h1>
+  <div class="content">
+    <div class="flowline">
+      <div>Intake<small>Jira + tasks folder</small></div><span>&rarr;</span>
+      <div class="you">You approve<small>the intake</small></div><span>&rarr;</span>
+      <div>Worktree<small>new branch</small></div><span>&rarr;</span>
+      <div class="agent">Spec</div><span>&rarr;</span>
+      <div class="agent">Build</div><span>&rarr;</span>
+      <div class="agent">4-5 lenses<small>parallel</small></div><span>&rarr;</span>
+      <div class="agent">Approver</div><span>&rarr;</span>
+      <div class="ok">Pushed<small>+ PR link</small></div><span>&rarr;</span>
+      <div class="you">You open<small>the PR</small></div>
+    </div>
+    <div class="columns">
+      <div class="card"><h3>Standalone</h3><code>&lt;team&gt;/vung-&lt;n&gt;-&lt;slug&gt;</code> from <code>origin/master</code></div>
+      <div class="card"><h3>Epic child</h3><code>&lt;team&gt;/vung-&lt;e&gt;/vung-&lt;n&gt;-&lt;slug&gt;</code> from the epic branch on origin</div>
+      <div class="card"><h3>Always</h3>One ticket = one branch per repo = one PR. Commits <code>VUNG-&lt;n&gt;: ...</code>. Existing branches are never reused. Teammates approve, a person merges.</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="How the agents trigger">
+  <div class="slide-num">06 / 16</div>
+  <div class="kicker">Orchestration</div>
+  <h1>How the agents trigger</h1>
+  <div class="diagram">
+  <svg viewBox="0 0 1200 605" role="img" aria-labelledby="dtitle">
+    <title id="dtitle">ngvu-factory ticket loop: the orchestrator spawns spec-writer, builder, four or five parallel review lenses and the approver; reviews loop back to the builder; APPROVE pushes the branch and hands over the PR link; every stop lands in needs-human</title>
+    <defs>
+      <marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="m-flow" d="M0,0 L10,5 L0,10 z"/></marker>
+      <marker id="a-loop" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="m-loop" d="M0,0 L10,5 L0,10 z"/></marker>
+      <marker id="a-block" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="m-block" d="M0,0 L10,5 L0,10 z"/></marker>
+      <marker id="a-you" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="m-you" d="M0,0 L10,5 L0,10 z"/></marker>
+    </defs>
+
+    <!-- main row -->
+    <rect class="d-box d-orch" x="10" y="182" width="125" height="70" rx="12"/>
+    <text class="t" x="72" y="207" text-anchor="middle">Intake</text>
+    <text class="s" x="72" y="225" text-anchor="middle">Jira + tasks</text>
+    <text class="s" x="72" y="240" text-anchor="middle">open-question gate</text>
+
+    <rect class="d-box d-human" x="160" y="182" width="120" height="70" rx="12"/>
+    <text class="t" x="220" y="210" text-anchor="middle">You approve</text>
+    <text class="t" x="220" y="228" text-anchor="middle">the intake</text>
+
+    <rect class="d-box d-orch" x="305" y="182" width="120" height="70" rx="12"/>
+    <text class="t" x="365" y="207" text-anchor="middle">Worktree</text>
+    <text class="s" x="365" y="225" text-anchor="middle">worktree-setup.sh</text>
+    <text class="s" x="365" y="240" text-anchor="middle">new branch</text>
+
+    <rect class="d-box d-agent" x="450" y="182" width="125" height="70" rx="12"/>
+    <text class="t" x="512" y="207" text-anchor="middle">spec-writer</text>
+    <text class="s" x="512" y="225" text-anchor="middle">opus</text>
+    <text class="s" x="512" y="240" text-anchor="middle">-&gt; spec.md</text>
+
+    <rect class="d-box d-agent" x="600" y="182" width="125" height="70" rx="12"/>
+    <text class="t" x="662" y="207" text-anchor="middle">builder</text>
+    <text class="s" x="662" y="225" text-anchor="middle">opus, commits</text>
+    <text class="s" x="662" y="240" text-anchor="middle">-&gt; build.md</text>
+
+    <path class="d-line d-flow" d="M135 217 H156" marker-end="url(#a-flow)"/>
+    <path class="d-line d-flow" d="M280 217 H301" marker-end="url(#a-flow)"/>
+    <path class="d-line d-flow" d="M425 217 H446" marker-end="url(#a-flow)"/>
+    <path class="d-line d-flow" d="M575 217 H596" marker-end="url(#a-flow)"/>
+
+    <!-- lenses in parallel; frontend-ui only with nextjs repos -->
+    <text class="lab lab-flow" x="840" y="64" text-anchor="middle">spawned in ONE message, run in parallel</text>
+    <rect class="d-box d-agent" x="765" y="85" width="150" height="46" rx="12"/>
+    <text class="t" x="840" y="105" text-anchor="middle">security-tenancy</text>
+    <text class="s" x="840" y="122" text-anchor="middle">opus</text>
+    <rect class="d-box d-agent" x="765" y="141" width="150" height="46" rx="12"/>
+    <text class="t" x="840" y="161" text-anchor="middle">code-conventions</text>
+    <text class="s" x="840" y="178" text-anchor="middle">sonnet, re-runs UT</text>
+    <rect class="d-box d-agent" x="765" y="197" width="150" height="46" rx="12"/>
+    <text class="t" x="840" y="217" text-anchor="middle">contract-integration</text>
+    <text class="s" x="840" y="234" text-anchor="middle">sonnet, catalog</text>
+    <rect class="d-box d-agent" x="765" y="253" width="150" height="46" rx="12"/>
+    <text class="t" x="840" y="273" text-anchor="middle">data-persistence</text>
+    <text class="s" x="840" y="290" text-anchor="middle">sonnet</text>
+    <rect class="d-box d-agent d-opt" x="765" y="309" width="150" height="46" rx="12"/>
+    <text class="t" x="840" y="329" text-anchor="middle">frontend-ui</text>
+    <text class="s" x="840" y="346" text-anchor="middle">only nextjs</text>
+    <text class="s" x="840" y="372" text-anchor="middle">-&gt; round-N/review-*.md</text>
+
+    <path class="d-line d-flow" d="M725 217 H745 V108 H761" marker-end="url(#a-flow)"/>
+    <path class="d-line d-flow" d="M745 164 H761" marker-end="url(#a-flow)"/>
+    <path class="d-line d-flow" d="M745 220 H761" marker-end="url(#a-flow)"/>
+    <path class="d-line d-flow" d="M745 220 V276 H761" marker-end="url(#a-flow)"/>
+    <path class="d-line d-flow" d="M745 276 V332 H761" marker-end="url(#a-flow)"/>
+
+    <!-- join -->
+    <rect class="d-join" x="934" y="85" width="7" height="270" rx="2"/>
+    <text class="lab lab-loop" x="937" y="78" text-anchor="middle">WAIT FOR ALL</text>
+    <path class="d-line d-flow" d="M915 108 H930"/>
+    <path class="d-line d-flow" d="M915 164 H930"/>
+    <path class="d-line d-flow" d="M915 220 H930"/>
+    <path class="d-line d-flow" d="M915 276 H930"/>
+    <path class="d-line d-flow" d="M915 332 H930"/>
+
+    <rect class="d-box d-agent" x="960" y="182" width="105" height="70" rx="12"/>
+    <text class="t" x="1012" y="207" text-anchor="middle">approver</text>
+    <text class="s" x="1012" y="225" text-anchor="middle">8 triggers</text>
+    <text class="s" x="1012" y="240" text-anchor="middle">-&gt; decision.md</text>
+    <path class="d-line d-flow" d="M941 217 H956" marker-end="url(#a-flow)"/>
+    <text class="lab lab-flow" x="1012" y="268" text-anchor="middle">all PASS</text>
+
+    <!-- outcomes -->
+    <rect class="d-box d-ready" x="1090" y="95" width="105" height="54" rx="12"/>
+    <text class="t" x="1142" y="118" text-anchor="middle">ready-for-pr</text>
+    <text class="s" x="1142" y="136" text-anchor="middle" style="font-size:10px">pushed + PR link</text>
+    <text class="lab lab-flow" x="1142" y="86" text-anchor="middle">APPROVE</text>
+
+    <rect class="d-box d-stop" x="1090" y="300" width="105" height="54" rx="12"/>
+    <text class="t" x="1142" y="323" text-anchor="middle">needs-human</text>
+    <text class="s" x="1142" y="341" text-anchor="middle">reason quoted</text>
+    <text class="lab lab-flow" x="1050" y="292" text-anchor="middle">ESCALATE</text>
+
+    <path class="d-line d-flow" d="M1065 205 H1077 V122 H1086" marker-end="url(#a-flow)"/>
+    <path class="d-line d-flow" d="M1065 229 H1077 V327 H1086" marker-end="url(#a-flow)"/>
+
+    <!-- you: approve an ESCALATE -->
+    <path class="d-line d-you" d="M1172 300 V153" marker-end="url(#a-you)"/>
+    <text class="lab lab-you" x="1132" y="222" text-anchor="middle">you:</text>
+    <text class="lab lab-you" x="1132" y="236" text-anchor="middle">/approve</text>
+
+    <!-- review loop -->
+    <path class="d-line d-loop" d="M937 355 V410 H682 V256" marker-end="url(#a-loop)"/>
+    <text class="lab lab-loop" x="812" y="388" text-anchor="middle">any CHANGES: SendMessage</text>
+    <text class="lab lab-loop" x="812" y="402" text-anchor="middle">to builderAgentId (max 2 resumes)</text>
+    <path class="d-line d-block" d="M937 410 H1150 V358" marker-end="url(#a-block)"/>
+    <text class="lab lab-block" x="1040" y="402" text-anchor="middle">no resumes left</text>
+
+    <!-- BLOCKED -->
+    <path class="d-line d-block" d="M525 252 V470 H1165 V358" marker-end="url(#a-block)"/>
+    <path class="d-line d-block" d="M640 252 V470"/>
+    <text class="lab lab-block" x="800" y="462" text-anchor="middle">spec or build BLOCKED</text>
+
+    <!-- rework -->
+    <path class="d-line d-you" d="M1118 354 V530 H662 V256" marker-end="url(#a-you)"/>
+    <path class="d-line d-you" d="M662 530 H500 V256" marker-end="url(#a-you)"/>
+    <text class="lab lab-you" x="890" y="522" text-anchor="middle">you: /rework -&gt; fresh builder (or spec-writer when the spec was BLOCKED)</text>
+
+    <!-- tokens: a ticket on the happy path, one bouncing back on CHANGES, one stopping on BLOCKED -->
+    <circle class="token" r="6">
+      <animateMotion dur="9s" repeatCount="indefinite" calcMode="linear" path="M20 217 H745 V164 H937 V217 H1077 V122 H1142"/>
+    </circle>
+    <circle class="token-loop" r="5">
+      <animateMotion dur="7s" begin="-3s" repeatCount="indefinite" calcMode="linear" path="M662 217 H745 V276 H937 V410 H682 V217"/>
+    </circle>
+    <circle class="token-bad" r="5">
+      <animateMotion dur="8s" begin="-5s" repeatCount="indefinite" calcMode="linear" path="M640 217 V470 H1165 V327"/>
+    </circle>
+
+    <!-- legend -->
+    <rect class="d-box d-orch" x="10" y="552" width="18" height="14" rx="3"/>
+    <text class="lab lab-flow" x="34" y="563">orchestrator (this session): runs scripts, pushes, only writer of ticket.json</text>
+    <rect class="d-box d-agent" x="520" y="552" width="18" height="14" rx="3"/>
+    <text class="lab lab-flow" x="544" y="563">agent: writes exactly one file, verdict on line 1</text>
+    <rect class="d-box d-human" x="850" y="552" width="18" height="14" rx="3"/>
+    <text class="lab lab-flow" x="874" y="563">you: approvals, rework, the PR</text>
+    <path class="legend-line d-flow" d="M10 588 H40"/>
+    <text class="lab lab-flow" x="46" y="592">hand-off</text>
+    <path class="legend-line d-loop" d="M150 588 H180"/>
+    <text class="lab lab-loop" x="186" y="592">review loop (faster)</text>
+    <path class="legend-line d-block" d="M330 588 H360"/>
+    <text class="lab lab-block" x="366" y="592">stop: BLOCKED / no resumes</text>
+    <path class="legend-line d-you" d="M540 588 H570"/>
+    <text class="lab lab-you" x="576" y="592">your action</text>
+    <circle class="token" cx="690" cy="588" r="5"/>
+    <text class="lab lab-flow" x="700" y="592">a ticket moving through the loop</text>
+    <rect class="d-box d-ready" x="900" y="581" width="18" height="14" rx="3"/>
+    <text class="lab lab-flow" x="924" y="592">ready</text>
+    <rect class="d-box d-stop" x="980" y="581" width="18" height="14" rx="3"/>
+    <text class="lab lab-flow" x="1004" y="592">needs you</text>
+  </svg>
+  </div>
+</section>
+
+<section class="slide" data-title="Intake gates">
+  <div class="slide-num">07 / 16</div>
+  <div class="kicker">Before anything is built</div>
+  <h1>Intake gates</h1>
+  <div class="content columns two">
+    <div class="card"><h3>Investigation first</h3><code>tasks\VUNG-&lt;n&gt;-&lt;slug&gt;\</code> must exist (<code>ngvu-ticket-investigation</code>; an Epic needs <code>ngvu-epic-investigation</code>). From a log or Sentry signal: <code>ngvu-triage</code> drafts the ticket. Repos come from <code>04-IMPLEMENTATION-PLAN.md</code>, resolved by <code>repo-path.sh</code> with their kind; a <code>04</code> still holding the template <code>AC-1  WHEN ...</code> counts as not investigated and stops the intake.</div>
+    <div class="card gate"><h3>Open-question gate</h3>An unanswered question that can change an AC, authorization, a contract, stored data or failure behaviour blocks spec and build. Answer it, or reply <code>build on defaults Q12, Q14</code> - the approver still escalates each.</div>
+    <div class="card"><h3>Branches</h3>Names only from <code>branch-name.sh</code>; existing branches with the key are listed and never reused.</div>
+    <div class="card"><h3>Claims</h3>An epic child is claimed atomically; a declined intake releases the claim; <code>close</code> keeps it.</div>
+  </div>
+</section>
+
+<section class="slide" data-title="Review lenses">
+  <div class="slide-num">08 / 16</div>
+  <div class="kicker">Quality gate</div>
+  <h1>Review lenses</h1>
+  <div class="content">
+  <table class="matrix">
+    <tr><th>Lens</th><th>Model</th><th>Looks for</th></tr>
+    <tr><td>security-tenancy</td><td>opus</td><td>@PermissionAllowed, admin resources (P5), tenant isolation by path, no secrets / PII / Vault values</td></tr>
+    <tr><td>code-conventions</td><td>sonnet</td><td>re-runs unit tests and IT discovery, MicroProfile idioms, Fault Tolerance and timeouts, English comments</td></tr>
+    <tr><td>contract-integration</td><td>sonnet</td><td>REST / DTO / Pub/Sub changes; consumers from the Service Catalog, then grep in services, nextjs</td></tr>
+    <tr><td>data-persistence</td><td>sonnet</td><td>Flyway append-only, JPA vs DTO, Mongo indexes, stored-data compatibility</td></tr>
+    <tr><td>frontend-ui</td><td>sonnet</td><td>only with nextjs repos: Next.js apps and libs, translations in every supported locale, client caches, accessibility</td></tr>
+  </table>
+  <div class="note">Reviewers never change code: <code>review-guard.sh</code> snapshots every worktree HEAD before the round and stops if one moved or a tree is dirty (exit 19).</div>
+  </div>
+</section>
+
+<section class="slide" data-title="Escalation">
+  <div class="slide-num">09 / 16</div>
+  <div class="kicker">Approval gate</div>
+  <h1>Escalation</h1>
+  <div class="content">
+    <p>APPROVE means "push the branch and hand over the PR link". These always go to a human:</p>
+    <div class="trig">
+      <div>Flyway migration, Mongo index, backfill, data shape</div>
+      <div>Authorization, MP JWT, tenant isolation</div>
+      <div>Contract used by another repo</div>
+      <div>CI, Dockerfile, deployment, standalone.xml, new dependency</div>
+      <div>Failure behaviour not in the AC</div>
+      <div>User-facing strings (translation files, every supported locale)</div>
+      <div>Unanswered or accepted-default open question</div>
+      <div>Related IT without IT: PASS from you</div>
+    </div>
+    <div class="callout gate">A repo owned by another team is not a trigger: it is listed under "Other-team repos" so that team gets the PR for information.</div>
+  </div>
+</section>
+
+<section class="slide" data-title="Test gate">
+  <div class="slide-num">10 / 16</div>
+  <div class="kicker">Evidence</div>
+  <h1>Test gate</h1>
+  <div class="content">
+  <table class="matrix">
+    <tr><th>Check</th><th>Action</th><th>Gate</th></tr>
+    <tr><td>Unit tests</td><td><code>unit-test.sh &lt;wt&gt; &lt;kind&gt; &lt;base&gt;</code>: services <code>mvn clean install -DskipITs=true -B</code> (or your <code>unitTest.java-service</code> script), Next.js <code>nx affected -t test typecheck</code></td><td class="ok">always, must be green</td></tr>
+    <tr><td>Integration tests</td><td><code>find-its.sh</code> lists ITs that reference changed classes; the builder writes the command; <b>you</b> run them and record <code>it-results.md</code></td><td class="ok">IT: PASS, else trigger 8</td></tr>
+    <tr><td>Comments</td><td><code>non-ascii-check.sh</code></td><td class="ok">English only</td></tr>
+    <tr><td>The factory itself</td><td><code>bash tests/selftest.sh</code> - scripts, agents, skills, guards, install, deploy, docs</td><td class="ok">all passed</td></tr>
+  </table>
+  </div>
+</section>
+
+<section class="slide" data-title="After the PR">
+  <div class="slide-num">11 / 16</div>
+  <div class="kicker">Close the loop</div>
+  <h1>After the PR</h1>
+  <div class="content">
+    <div class="flowline">
+      <div class="you">You open the PR<small>link from the push</small></div><span>&rarr;</span>
+      <div class="agent">pr-feedback<small>comments -&gt; new round</small></div><span>&rarr;</span>
+      <div class="you">Teammates approve<small>a person merges</small></div><span>&rarr;</span>
+      <div class="agent">verify<small>read-only, bounded logs</small></div><span>&rarr;</span>
+      <div class="ok">retro<small>misses -&gt; evals</small></div>
+    </div>
+    <div class="columns">
+      <div class="card"><h3>pr-feedback</h3>You paste the GitHub comments; each gets FIX, PUSH BACK or QUESTION; new commits go to the same PR, never forced.</div>
+      <div class="card"><h3>verify</h3>Merge on master, CI, workload health, error counts one hour before and after the deploy you name, your smoke list -&gt; <code>verify.md</code>.</div>
+      <div class="card"><h3>retro / close</h3>retro drafts eval candidates for what the lenses missed. <code>close</code> ends work that will not be used and prints the cleanup.</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="Epic flow">
+  <div class="slide-num">12 / 16</div>
+  <div class="kicker">Many tickets</div>
+  <h1>Epic flow</h1>
+  <div class="content">
+    <div class="flowline">
+      <div>epic vung-&lt;e&gt;<small>Factory queue (breakdown.sh) + Jira children, Blocks links</small></div><span>&rarr;</span>
+      <div class="you">You approve<small>the queue</small></div><span>&rarr;</span>
+      <div>EPIC branch<small>created and pushed</small></div><span>&rarr;</span>
+      <div>next vung-&lt;e&gt;<small>per session</small></div><span>&rarr;</span>
+      <div class="agent">Ticket loop<small>slide 6</small></div><span>&rarr;</span>
+      <div class="you">PR merged<small>into the epic branch</small></div><span>&rarr;</span>
+      <div class="ok">finish-epic<small>DoD check, epic PR links</small></div>
+    </div>
+    <ul>
+      <li>The queue is the keyed stories of <code>08-STORY-BREAKDOWN.md</code> &sect; Factory queue, checked by <code>breakdown.sh</code>; Test and Sub-task children are never queued.</li>
+      <li>A blocker is done only when its own work is merged into <code>origin/&lt;epic branch&gt;</code>; a closed blocker is shown to you to decide. A blocker merged straight to master (exit 23) stops the child's intake: you choose a reviewed PR bringing master into the epic branch, or building the child with <code>--independent</code> from <code>origin/master</code>.</li>
+      <li>Children without an investigation (no folder, or a template <code>04</code>) are never started; <code>next</code> refreshes them first and skips children already Done in Jira.</li>
+      <li><code>finish-epic</code> lists never-built children for you to decide, re-runs <code>breakdown.sh</code> and checks the epic DoD before the PR links.</li>
+      <li>Sessions in the same repo share <code>.git</code> and <code>~/.m2</code>: run different repos in parallel. Cost: about seven agents per round.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="slide" data-title="Guardrails">
+  <div class="slide-num">13 / 16</div>
+  <div class="kicker">Mechanism, not only a prompt</div>
+  <h1>Guardrails</h1>
+  <div class="content columns two">
+    <div class="card good"><h3>ngvu_guardrails.py <small>Bash, PowerShell</small></h3>Parses the command. Allows only <code>git [-C &lt;repo&gt;] push [-u] origin &lt;vung-n branch&gt;</code>. Blocks refspecs, force, master/develop/release, push aliases, destructive git, <code>acli</code> Jira writes.</div>
+    <div class="card good"><h3>guard.sh <small>Bash, PowerShell, Edit, Write</small></h3>Blocks kubectl/helm/terraform/gcloud changes, Vault, destructive Mongo, <code>rm -rf</code>, release scripts. Asks before edits to compose, .env, credentials, example_deploy, Claude settings.</div>
+  </div>
+  <div class="content callout danger">Both fail closed (<code>onFailure: block</code>): no working <code>python</code> or <code>bash</code> means every shell call is blocked - run doctor. Atlassian MCP write tools are denied in <code>settings.json</code>; a <code>Bash(git push:*)</code> deny alone would miss <code>git -C &lt;repo&gt; push</code>.</div>
+</section>
+
+<section class="slide" data-title="Daily commands">
+  <div class="slide-num">14 / 16</div>
+  <div class="kicker">Cheatsheet</div>
+  <h1>Daily commands</h1>
+  <div class="content">
+<pre><code>/ngvu-factory:ngvu-factory ticket vung-&lt;n&gt;        # intake -&gt; ... -&gt; pushed branch + PR link
+/ngvu-factory:ngvu-factory epic vung-&lt;e&gt;          # queue, epic branches pushed
+/ngvu-factory:ngvu-factory next vung-&lt;e&gt;          # one session per child
+/ngvu-factory:ngvu-factory finish-epic vung-&lt;e&gt;   # all merged + DoD -&gt; epic PR links
+/ngvu-factory:ngvu-factory cleanup [vung-&lt;n&gt;]     # read-only plan; you run the script
+/ngvu-factory:ngvu-factory status [vung-&lt;n&gt;]      # table, or one ticket with its cost report
+/ngvu-factory:ngvu-factory approve | rework | resume | close vung-&lt;n&gt;
+/ngvu-factory:ngvu-factory pr-feedback | verify | retro vung-&lt;n&gt;
+python dashboard/serve.py                          # read-only board, http://127.0.0.1:8765/</code></pre>
+    <div class="note">Old user-level install: the same commands as <code>/ngvu-factory ...</code>. Full list: <code>guide/CHEATSHEET.md</code>.</div>
+  </div>
+</section>
+
+<section class="slide" data-title="Engineering skills">
+  <div class="slide-num">15 / 16</div>
+  <div class="kicker">ngvu-engineering</div>
+  <h1>Engineering skills</h1>
+  <div class="content columns four">
+    <div class="card"><h3>Review and route</h3>pr-review, daily-router, ticket-workflow, ngvu-evidence-report</div>
+    <div class="card"><h3>Ops and logs</h3>ngvu-flow-logs, pod health, playwright-checking, observability-sre, incident-response</div>
+    <div class="card"><h3>Data</h3>sql-optimization, db-schema-design, db-migration, dba-engineering</div>
+    <div class="card"><h3>Design</h3>system-design, technical-architecture, system-analysis, adr, security-engineering, bigtech-benchmark</div>
+  </div>
+  <div class="content note">They trigger from what you ask; force one with <code>/ngvu-engineering:&lt;skill&gt;</code>. Third-party skills (tdd, grilling, graphify, superpowers) are not shipped - install them from upstream.</div>
+</section>
+
+<section class="slide" data-title="Rollout and Questions">
+  <div class="slide-num">16 / 16</div>
+  <div class="kicker">Next step</div>
+  <h1>Rollout and Questions</h1>
+  <div class="content timeline">
+    <div class="ok"><b>Public release 0.1.0</b><span>Docs checked, deploy kit, selftest green, plugins validate with --strict</span></div>
+    <div><b>1. Clone</b><span>Put this repo on a machine to try it</span></div>
+    <div><b>2. Pilot machine</b><span>bootstrap -DryRun, bootstrap, doctor; one real ticket end to end; first Next.js ticket proves the frontend gate</span></div>
+    <div><b>3. Team</b><span>Each teammate clones and runs bootstrap; feedback becomes roadmap items</span></div>
+  </div>
+  <div class="content callout gate">Questions? Ask, do not assume. Start with <code>guide/USER-GUIDE.md</code> and <code>deploy/README.md</code>.</div>
+</section>
+
+</div>
+
+<div id="toc"></div>
+<div id="controls">
+  <button id="prev">&larr; Prev</button>
+  <button id="next">Next &rarr;</button>
+  <button id="tocBtn">Menu (M)</button>
+  <div class="progress"><div class="bar"></div></div>
+  <span id="counter"></span>
+</div>
+
+<script>
+let idx=0;
+const slides=[...document.querySelectorAll('.slide')];
+const toc=document.querySelector('#toc');
+toc.innerHTML=slides.map((s,i)=>`<button data-jump="${i}">${i+1}. ${s.dataset.title}</button>`).join('')
+  +'<div class="toc-hint">&uarr; &darr; move &middot; Enter open &middot; Esc close</div>';
+const menuItems=()=>[...toc.querySelectorAll('button')];
+let sel=0;
+function show(i){
+  idx=Math.max(0,Math.min(slides.length-1,i));
+  slides.forEach((s,k)=>s.classList.toggle('active',k===idx));
+  document.querySelector('.bar').style.width=((idx+1)/slides.length*100)+'%';
+  document.querySelector('#counter').textContent=(idx+1)+' / '+slides.length;
+  [...toc.querySelectorAll('button')].forEach((b,k)=>b.classList.toggle('active',k===idx));
+  history.replaceState(null,'','#'+(idx+1));
+}
+document.querySelector('#next').onclick=()=>show(idx+1);
+document.querySelector('#prev').onclick=()=>show(idx-1);
+// Menu: M or T toggles it; while open, Up/Down/Home/End move the selection and Enter opens it.
+function select(i){
+  const items=menuItems();
+  sel=Math.max(0,Math.min(items.length-1,i));
+  items.forEach((b,k)=>b.classList.toggle('sel',k===sel));
+  items[sel].focus();
+  items[sel].scrollIntoView({block:'nearest'});
+}
+function openMenu(){toc.classList.add('open');select(idx)}
+function closeMenu(){toc.classList.remove('open')}
+function toggleMenu(){toc.classList.contains('open')?closeMenu():openMenu()}
+document.querySelector('#tocBtn').onclick=toggleMenu;
+toc.onclick=e=>{const b=e.target.closest('button');if(b){show(+b.dataset.jump);closeMenu()}};
+window.onkeydown=e=>{
+  if(e.ctrlKey||e.altKey||e.metaKey)return;
+  const k=e.key.toLowerCase();
+  if(k==='m'||k==='t'){e.preventDefault();toggleMenu();return}
+  if(toc.classList.contains('open')){
+    const moves={ArrowDown:sel+1,ArrowUp:sel-1,Home:0,End:slides.length-1};
+    if(e.key in moves){e.preventDefault();select(moves[e.key])}
+    if(e.key==='Enter'){e.preventDefault();show(sel);closeMenu()}
+    if(e.key==='Escape')closeMenu();
+    return;
+  }
+  if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();show(idx+1)}
+  if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();show(idx-1)}
+  if(e.key==='Home')show(0);
+  if(e.key==='End')show(slides.length-1);
+};
+window.onhashchange=()=>show(parseInt(location.hash.replace('#','')||'1',10)-1);
+show(Math.max(0,parseInt(location.hash.replace('#','')||'1',10)-1));
+</script>
+</body>
+</html>

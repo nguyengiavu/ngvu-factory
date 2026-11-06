@@ -1,0 +1,11 @@
+{
+  "_comment": "Third-party plugins/skills this factory relies on. Update = bump here, run evals (tools/run-evals.sh), commit.",
+  "superpowers@claude-plugins-official": {
+    "repo": "https://github.com/obra/superpowers",
+    "version": "7.0.0",
+    "gitCommitSha": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+    "license": "MIT",
+    "usedFor": ["bugs.diagnose: systematic-debugging", "review.pr process: requesting-code-review", "dev.tdd (proposed)"],
+    "source": "~/.claude/plugins/installed_plugins.json, plugin.json (read 2026-10-19)"
+  }
+}

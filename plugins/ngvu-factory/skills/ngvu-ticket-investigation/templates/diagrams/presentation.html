@@ -1,0 +1,844 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TICKET}} {{TITLE}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@600;700&display=swap">
+<style>
+/* ============================================================
+   TOKENS — light (default) palette
+   Chrome accent = indigo. Categorical hues = 1 per repo, borrowed
+   from an Open-Color-style system so each pair (fg on tinted bg)
+   already meets AA contrast without per-case checking.
+   ============================================================ */
+:root{
+  --ground:#f5f6f4; --surface:#ffffff; --surface-2:#eef1ee; --plate:#fbfcfa;
+  --ink:#1b1f1d; --ink-2:#4b5a52; --ink-3:#7c8981;
+  --rule:#dfe4de; --rule-strong:#c7cec6;
+  --shadow:0 1px 2px rgba(20,30,25,.05), 0 10px 28px -20px rgba(20,30,25,.35);
+
+  --accent:#3b5bdb; --accent-ink:#2f4bc0; --accent-soft:#edf0ff;
+
+  --ok:#2b8a3e; --ok-soft:#d3f9d8;
+  --warn:#c9750a; --warn-soft:#fff3bf;
+  --block:#c92a2a; --block-soft:#ffe3e3;
+
+  /* repo identity — used consistently across every diagram, table and badge */
+  --repo-store:#1971c2;   --repo-store-soft:#e7f5ff;     /* example_core — source of truth */
+  --repo-pay:#c92a2a;     --repo-pay-soft:#ffe3e3;       /* example_payment — cross-team */
+  --repo-comp:#2b8a3e;    --repo-comp-soft:#d3f9d8;      /* example_ui_lib — shared */
+  --repo-web:#0c8599;     --repo-web-soft:#c5f6fa;       /* example_web — UI */
+  --repo-ext:#d9480f;     --repo-ext-soft:#ffe8cc;       /* PaymentProvider / ExamplePay — external */
+  --repo-actor:#495057;   --repo-actor-soft:#eef1ee;     /* customer */
+
+  --sans:'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+  --serif:'IBM Plex Serif', Georgia, 'Times New Roman', serif;
+  --mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#10141b; --surface:#161b23; --surface-2:#1d232d; --plate:#141a22;
+    --ink:#e7ebe6; --ink-2:#a9b6ae; --ink-3:#7c8981;
+    --rule:#2a323c; --rule-strong:#3a4450;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 12px 32px -20px rgba(0,0,0,.85);
+
+    --accent:#8fa2f5; --accent-ink:#aebbff; --accent-soft:#1a2242;
+
+    --ok:#69db85; --ok-soft:#122b1c;
+    --warn:#f2b23d; --warn-soft:#2e2410;
+    --block:#ff9b9b; --block-soft:#331515;
+
+    --repo-store:#7cc4fa;  --repo-store-soft:#0f2338;
+    --repo-pay:#ffa8a8;    --repo-pay-soft:#331515;
+    --repo-comp:#7ee2a8;   --repo-comp-soft:#0f2b1a;
+    --repo-web:#66d9e8;    --repo-web-soft:#0a2a2e;
+    --repo-ext:#ffb366;    --repo-ext-soft:#33210c;
+    --repo-actor:#aab4ac;  --repo-actor-soft:#1d232d;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#10141b; --surface:#161b23; --surface-2:#1d232d; --plate:#141a22;
+  --ink:#e7ebe6; --ink-2:#a9b6ae; --ink-3:#7c8981;
+  --rule:#2a323c; --rule-strong:#3a4450;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 12px 32px -20px rgba(0,0,0,.85);
+  --accent:#8fa2f5; --accent-ink:#aebbff; --accent-soft:#1a2242;
+  --ok:#69db85; --ok-soft:#122b1c;
+  --warn:#f2b23d; --warn-soft:#2e2410;
+  --block:#ff9b9b; --block-soft:#331515;
+  --repo-store:#7cc4fa;  --repo-store-soft:#0f2338;
+  --repo-pay:#ffa8a8;    --repo-pay-soft:#331515;
+  --repo-comp:#7ee2a8;   --repo-comp-soft:#0f2b1a;
+  --repo-web:#66d9e8;    --repo-web-soft:#0a2a2e;
+  --repo-ext:#ffb366;    --repo-ext-soft:#33210c;
+  --repo-actor:#aab4ac;  --repo-actor-soft:#1d232d;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--ground); color:var(--ink);
+  font-family:var(--sans); font-size:15px; line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent)}
+code{
+  font-family:var(--mono); font-size:.87em; background:var(--surface-2);
+  padding:1.5px 5px; border-radius:3px; word-break:break-word; color:var(--ink);
+}
+h1,h2,h3{text-wrap:balance}
+p{margin:0 0 12px; max-width:72ch}
+::selection{background:var(--accent-soft); color:var(--accent-ink)}
+@media (prefers-reduced-motion: reduce){*{animation:none !important; transition:none !important; scroll-behavior:auto !important}}
+</style>
+<style>
+/* ============================================================
+   APP SHELL — sticky masthead + tab bar, content = one panel at a time
+   ============================================================ */
+.app{display:flex; flex-direction:column; min-height:100%}
+
+/* One sticky block for app bar + tab bar: the app bar wraps to 2+ lines below ~1280px,
+   so a fixed top offset on the tab bar would slide it under the app bar after scrolling. */
+.chrome{position:sticky; top:0; z-index:30}
+.appbar{
+  background:var(--surface);
+  border-bottom:1px solid var(--rule);
+}
+.appbar-inner{
+  max-width:1240px; margin:0 auto; padding:14px 28px;
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+}
+.appbar-id{
+  font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.08em;
+  color:var(--accent-ink); background:var(--accent-soft); padding:4px 9px; border-radius:5px;
+  flex:none;
+}
+.appbar-title{font-family:var(--serif); font-weight:700; font-size:17px; letter-spacing:-.005em; flex:1 1 auto; min-width:200px}
+.appbar-meta{display:flex; gap:8px; flex:0 1 auto; min-width:0; flex-wrap:wrap}
+.chip{
+  font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.06em;
+  padding:3px 9px; border-radius:5px; white-space:nowrap; border:1px solid transparent;
+}
+.chip.status-todo{color:var(--warn); background:var(--warn-soft)}
+.chip.status-progress{color:var(--repo-store); background:var(--repo-store-soft)}
+.chip.status-blocker{color:var(--block); background:var(--block-soft)}
+.chip.neutral{color:var(--ink-2); background:var(--surface-2); border-color:var(--rule)}
+
+.tabbar{
+  background:var(--ground);
+  border-bottom:1px solid var(--rule);
+}
+/* Wrap instead of scrolling sideways: the artifact frame is narrower than the browser window,
+   and sideways scrolling hides the last tabs with no visible sign. With wrap every tab stays visible. */
+.tabbar-inner{
+  max-width:1240px; margin:0 auto; padding:0 20px; display:flex; gap:0 2px; flex-wrap:wrap;
+}
+.tab{
+  appearance:none; border:0; background:none; cursor:pointer; font-family:var(--sans);
+  color:var(--ink-3); font-size:13px; font-weight:500; letter-spacing:.01em;
+  padding:11px 13px 9px; display:flex; align-items:center; gap:7px; white-space:nowrap;
+  border-bottom:2.5px solid transparent; transition:color .12s ease;
+}
+.tab b{
+  font-family:var(--mono); font-size:10px; font-weight:600; color:var(--ink-3);
+  background:var(--surface-2); border-radius:3px; padding:1px 5px; transition:all .12s ease;
+}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--accent); font-weight:600}
+.tab[aria-selected="true"] b{background:var(--accent); color:var(--surface)}
+.tab:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:3px}
+
+.panels{max-width:1240px; margin:0 auto; padding:36px 28px 90px; width:100%}
+[role="tabpanel"][hidden]{display:none}
+
+.eyebrow{
+  font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--accent-ink); margin:0 0 8px;
+}
+.panel-head{margin-bottom:30px}
+.panel-head h1{
+  font-family:var(--serif); font-size:clamp(26px,3.2vw,36px); font-weight:700;
+  letter-spacing:-.015em; margin:0 0 8px; line-height:1.14;
+}
+.panel-dek{font-size:16px; color:var(--ink-2); max-width:70ch; margin:0}
+
+h2.sec{
+  font-family:var(--serif); font-size:20px; font-weight:600; letter-spacing:-.008em;
+  margin:38px 0 4px; padding-top:22px; border-top:1px solid var(--rule);
+}
+h2.sec:first-of-type{margin-top:0; padding-top:0; border-top:0}
+.sec-lede{color:var(--ink-2); margin:0 0 18px; max-width:70ch}
+h3{font-size:14px; font-weight:600; margin:22px 0 10px}
+
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:8px; overflow:hidden; margin-bottom:8px}
+.stat{background:var(--surface); padding:16px 18px; display:flex; flex-direction:column; gap:4px}
+.stat dt{font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3)}
+.stat dd{margin:0; font-size:21px; font-weight:700; font-variant-numeric:tabular-nums; font-family:var(--serif); letter-spacing:-.01em}
+.stat .sub{font-size:11.5px; color:var(--ink-3); font-weight:400; font-family:var(--sans)}
+
+.repobadge{
+  display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px;
+  font-weight:600; padding:3px 9px 3px 7px; border-radius:5px; white-space:nowrap;
+}
+.repobadge::before{content:""; width:7px; height:7px; border-radius:50%; background:currentColor; flex:none}
+.repobadge.r-store{color:var(--repo-store); background:var(--repo-store-soft)}
+.repobadge.r-pay{color:var(--repo-pay); background:var(--repo-pay-soft)}
+.repobadge.r-comp{color:var(--repo-comp); background:var(--repo-comp-soft)}
+.repobadge.r-web{color:var(--repo-web); background:var(--repo-web-soft)}
+.repobadge.r-ext{color:var(--repo-ext); background:var(--repo-ext-soft)}
+.repolegend{display:flex; flex-wrap:wrap; gap:8px 14px; margin:14px 0 24px; padding:12px 16px; background:var(--surface-2); border-radius:8px}
+
+.reqs{display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.req{background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:16px 18px; display:flex; flex-direction:column; gap:7px}
+.req .tag{font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.08em; color:var(--accent-ink)}
+.req p{margin:0; font-size:14px; color:var(--ink)}
+.req .src{font-size:12.5px; color:var(--ink-3); font-style:italic; margin-top:auto; padding-top:6px; border-top:1px dashed var(--rule)}
+
+.finding{border:1px solid var(--rule); border-left:3px solid var(--accent); background:var(--surface); border-radius:8px; padding:18px 20px; box-shadow:var(--shadow)}
+.finding h3{margin-top:0}
+.finding.warnbox{border-left-color:var(--warn)}
+.finding.blockbox{border-left-color:var(--block)}
+.finding.okbox{border-left-color:var(--ok)}
+.findgrid{display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+
+.tablewrap{overflow-x:auto; border:1px solid var(--rule); border-radius:8px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; font-size:13.5px; min-width:480px}
+th,td{padding:9px 13px; text-align:left; border-bottom:1px solid var(--rule); vertical-align:top}
+thead th{background:var(--surface-2); font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-2); white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:center; font-variant-numeric:tabular-nums; white-space:nowrap}
+tr.win td{font-weight:500; background:var(--ok-soft)}
+
+.dots{font-family:var(--mono); letter-spacing:.06em; white-space:nowrap}
+.d3{color:var(--ok)} .d2{color:var(--warn)} .d1{color:var(--block)}
+
+.pill{display:inline-block; font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:2px 7px; border-radius:4px; white-space:nowrap}
+.pill.ok{background:var(--ok-soft); color:var(--ok)}
+.pill.warn{background:var(--warn-soft); color:var(--warn)}
+.pill.block{background:var(--block-soft); color:var(--block)}
+.pill.accent{background:var(--accent-soft); color:var(--accent-ink)}
+
+figure{margin:22px 0 0; display:flex; flex-direction:column; gap:8px}
+.plate{background:var(--plate); border:1px solid var(--rule-strong); border-radius:8px; padding:18px 14px; overflow-x:auto}
+.plate pre.mermaid{margin:0; background:none; display:flex; justify-content:center; min-width:min-content}
+.plate svg.seq{display:block; margin:0 auto; max-width:100%; height:auto}
+figcaption{font-family:var(--mono); font-size:11px; letter-spacing:.05em; color:var(--ink-3); text-transform:uppercase}
+
+.steps{list-style:none; margin:0; padding:0}
+.steps li{display:grid; grid-template-columns:96px 1fr; gap:16px; padding:15px 0; border-top:1px solid var(--rule)}
+.steps li:last-child{border-bottom:1px solid var(--rule)}
+.steps .pr{font-family:var(--mono); font-size:12px; font-weight:600; color:var(--accent-ink); padding-top:2px}
+.steps .body b{display:block; font-size:14px; margin-bottom:3px}
+.steps .body span{font-size:13.5px; color:var(--ink-2)}
+.steps .body .files{font-family:var(--mono); font-size:11px; color:var(--ink-3); display:block; margin-top:6px; word-break:break-all}
+
+.qgrid{display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(270px,1fr))}
+.q{background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:14px 16px}
+.q .qid{font-family:var(--mono); font-size:11px; font-weight:600; color:var(--accent-ink); letter-spacing:.07em}
+.q b{display:block; font-size:14px; margin:4px 0 6px; font-weight:600}
+.q p{margin:0; font-size:13px; color:var(--ink-2)}
+.q .rec{margin-top:8px; font-size:13px; color:var(--ink); padding-top:8px; border-top:1px dashed var(--rule)}
+.q .rec em{color:var(--ink-3); font-style:normal; font-family:var(--mono); font-size:10.5px; letter-spacing:.07em; text-transform:uppercase; display:block; margin-bottom:2px}
+
+.files-index{display:grid; gap:8px; grid-template-columns:repeat(auto-fit,minmax(258px,1fr)); margin-top:8px}
+.files-index div{border:1px solid var(--rule); border-radius:8px; padding:11px 14px; background:var(--surface); font-size:13px}
+.files-index code{background:none; padding:0; color:var(--accent-ink); font-weight:600; display:block; margin-bottom:2px}
+.files-index span{color:var(--ink-2)}
+
+footer.pagefoot{max-width:1240px; margin:0 auto; padding:20px 28px 40px; font-size:12px; color:var(--ink-3); display:flex; flex-wrap:wrap; gap:6px 20px; border-top:1px solid var(--rule)}
+footer.pagefoot span{font-family:var(--mono); font-size:11px; letter-spacing:.04em}
+</style>
+<style>
+/* ============================================================
+   HAND-DRAWN SEQUENCE DIAGRAMS — inline SVG, no library.
+   Every color is a CSS class resolving to a token, so the two
+   diagrams below stay correct in both themes without touching
+   the markup. Lane hue = which system; arrow color = what the
+   response MEANS (neutral data / allowed / blocked) — the two
+   encodings never share one channel, so neither is overloaded.
+   ============================================================ */
+.seq text{font-family:var(--sans)}
+.seq .lane-name{font-size:13px; font-weight:600; text-anchor:middle}
+.seq .lane-sub{font-size:9.5px; fill:var(--ink-3); text-anchor:middle}
+.seq .lbl{font-family:var(--mono); font-size:11.5px; fill:var(--ink)}
+.seq .lbl-ok{fill:var(--ok)}
+.seq .lbl-block{fill:var(--block)}
+.seq .note-text{font-size:11px; fill:var(--ink-2); text-anchor:middle}
+.seq .legend text{font-size:10.5px; fill:var(--ink-3)}
+
+.seq .lane-actor .lane-box{fill:var(--repo-actor-soft); stroke:var(--repo-actor)}
+.seq .lane-actor .lane-name{fill:var(--repo-actor)}
+.seq .lane-actor .lifeline{stroke:var(--repo-actor)}
+.seq .lane-web .lane-box{fill:var(--repo-web-soft); stroke:var(--repo-web)}
+.seq .lane-web .lane-name{fill:var(--repo-web)}
+.seq .lane-web .lifeline{stroke:var(--repo-web)}
+.seq .lane-store .lane-box{fill:var(--repo-store-soft); stroke:var(--repo-store)}
+.seq .lane-store .lane-name{fill:var(--repo-store)}
+.seq .lane-store .lifeline{stroke:var(--repo-store)}
+.seq .lane-pay .lane-box{fill:var(--repo-pay-soft); stroke:var(--repo-pay)}
+.seq .lane-pay .lane-name{fill:var(--repo-pay)}
+.seq .lane-pay .lifeline{stroke:var(--repo-pay)}
+.seq .lane-comp .lane-box{fill:var(--repo-comp-soft); stroke:var(--repo-comp)}
+.seq .lane-comp .lane-name{fill:var(--repo-comp)}
+.seq .lane-comp .lifeline{stroke:var(--repo-comp)}
+.seq .lane-ext .lane-box{fill:var(--repo-ext-soft); stroke:var(--repo-ext); stroke-dasharray:5,3}
+.seq .lane-ext .lane-name{fill:var(--repo-ext)}
+.seq .lane-ext .lifeline{stroke:var(--repo-ext); stroke-dasharray:5,4}
+
+.seq .lifeline{stroke-width:1.6; opacity:.55; stroke-dasharray:4,4}
+.seq .lane-box{stroke-width:1.6}
+
+.seq .arrow-req{stroke:var(--ink); stroke-width:1.8; fill:none}
+.seq .arrow-req-head{fill:var(--ink)}
+.seq .arrow-neutral{stroke:var(--ink-3); stroke-width:1.6; stroke-dasharray:6,4; fill:none}
+.seq .arrow-neutral-head{fill:var(--ink-3)}
+.seq .arrow-ok{stroke:var(--ok); stroke-width:1.8; stroke-dasharray:6,4; fill:none}
+.seq .arrow-ok-head{fill:var(--ok)}
+.seq .arrow-block{stroke:var(--block); stroke-width:1.8; stroke-dasharray:6,4; fill:none}
+.seq .arrow-block-head{fill:var(--block)}
+
+.seq .note-box{fill:var(--surface-2); stroke:var(--rule-strong); stroke-width:1.2; stroke-dasharray:3,3}
+
+/* band = background strip grouping the steps of ONE outcome branch; drawn BEFORE the lifelines so it sits below */
+.seq .band rect{stroke-dasharray:8,5; stroke-width:1.3}
+.seq .band .band-label{font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.05em}
+.seq .band-block rect{fill:var(--block-soft); stroke:var(--block)}
+.seq .band-block .band-label{fill:var(--block)}
+.seq .band-ok rect{fill:var(--ok-soft); stroke:var(--ok)}
+.seq .band-ok .band-label{fill:var(--ok)}
+
+/* repo-map only: a box spanning two repos, plus small change-tags under boxes */
+.seq .lane-multi .lane-box{fill:var(--surface-2); stroke:var(--accent); stroke-width:1.6}
+.seq .lane-multi .lane-name{fill:var(--ink)}
+.seq .badge-web-dot{fill:var(--repo-web)}
+.seq .badge-web-text{fill:var(--repo-web); font-family:var(--mono); font-size:9.5px}
+.seq .badge-comp-dot{fill:var(--repo-comp)}
+.seq .badge-comp-text{fill:var(--repo-comp); font-family:var(--mono); font-size:9.5px}
+.seq .tag-crit rect{fill:var(--block-soft); stroke:var(--block); stroke-width:1.3}
+.seq .tag-crit text{fill:var(--block); font-family:var(--mono); font-size:10px; font-weight:600}
+.seq .tag-change rect{fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.3}
+.seq .tag-change text{fill:var(--accent-ink); font-family:var(--mono); font-size:10px; font-weight:600}
+.seq .tag-line-crit{stroke:var(--block); stroke-width:1.3; stroke-dasharray:3,3}
+.seq .tag-line-change{stroke:var(--accent); stroke-width:1.3; stroke-dasharray:3,3}
+.seq .chan-label{font-family:var(--mono); font-size:9.5px; fill:var(--ink-2); text-anchor:middle}
+
+/* theme toggle - the page follows the host theme; this button lets the presenter switch it */
+.theme-toggle{
+  appearance:none; cursor:pointer; flex:none; display:flex; align-items:center; gap:6px;
+  background:var(--surface-2); border:1px solid var(--rule); border-radius:6px;
+  padding:5px 10px; color:var(--ink-2); font-family:var(--mono); font-size:10.5px;
+  letter-spacing:.06em; text-transform:uppercase;
+}
+.theme-toggle:hover{color:var(--ink); border-color:var(--rule-strong)}
+.theme-toggle:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.theme-toggle svg{width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round}
+.theme-toggle .i-moon{display:none}
+.theme-toggle[data-mode="dark"] .i-sun{display:none}
+.theme-toggle[data-mode="dark"] .i-moon{display:block}
+
+/* Phone width: the app bar is ~234px tall, so only the tab bar stays pinned. */
+@media (max-width:640px){.chrome{display:contents} .tabbar{position:sticky; top:env(safe-area-inset-top,0px); z-index:30}}
+</style>
+
+<!-- ============================================================================
+     PRESENTATION FRAME — {{TICKET}}
+     The design system above (2-theme tokens, app bar, tabs, the .finding/
+     .tablewrap/.pill/.steps/.qgrid classes, and the CSS for hand-drawn sequence
+     diagrams) has been published and verified on an example ticket: 8 tabs, 3 hand-drawn SVGs,
+     3 Mermaid diagrams, no horizontal overflow, correct colours in light and dark. Do NOT
+     edit the CSS/script without a reason — replace the CONTENT below. The palette and the
+     SVG coordinate rules are documented in full in references/visual-style.md (read it
+     before drawing a new sequence diagram).
+
+     LANGUAGE: this file is written in reportLanguage (machine.json, default en). Only when
+     reportLanguage is not en, also write presentation.en.html: an English translation of
+     the finished presentation.html.
+
+     THEME: the app bar already has a light/dark button (#themeToggle). KEEP it — following
+     the host theme is not enough; the presenter must be able to switch and must SEE that the
+     page has two themes. The script handles the hard part: Mermaid bakes colours into the SVG
+     at render time, so the original source is saved in data-src and the open panel is
+     re-rendered on a theme change. A new Mermaid diagram needs nothing extra; if you replace
+     the script, keep data-src.
+
+     LIMIT: keep ~8-9 tabs. The tab bar wraps (flex-wrap), so every tab stays visible; more tabs
+     means the content needs grouping. Do not shorten labels to make them fit.
+
+     8 standard tabs (rename/change content, KEEP the structure — trim for a small ticket, see
+     SKILL.md "Right size"):
+       01 Overview            — stat tiles + repo legend + architecture/repo map + 3 findings
+       02 Requirements & Epic — R1/R2/R3 + place in the epic (mermaid) + conflicts + constraints
+       03 Core finding        — problem/solution with file:line, backward compatibility
+       04 Options compared    — scoring table + why-rejected
+       05 Flows & decisions   — hand-drawn SVG sequence + decision tree (mermaid)
+       06 Plan & roadmap      — PR steps + feature flag + gantt (mermaid)
+       07 Risks & questions   — qgrid + risk table
+       08 Documents           — index of the .md files
+
+     Available classes: .stats (stat tiles) · .reqs/.req · .finding
+     (+.warnbox/.blockbox/.okbox) · .tablewrap · .pill(.ok/.warn/.block/.accent) ·
+     .dots(.d3/.d2/.d1) · .steps · .qgrid · .files-index · .repobadge(.r-*)/.repolegend
+     ============================================================================ -->
+
+<div class="app">
+<div class="chrome">
+<header class="appbar">
+  <div class="appbar-inner">
+    <span class="appbar-id">{{TICKET}}</span>
+    <span class="appbar-title">{{TITLE}}</span>
+    <div class="appbar-meta">
+      <span class="chip status-todo">?</span>
+      <span class="chip status-progress">Epic ?% · ? unmerged commits</span>
+      <span class="chip neutral">? repo</span>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch light/dark theme">
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+        <span id="themeLabel">Light</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav class="tabbar" aria-label="Analysis contents">
+  <div class="tabbar-inner" role="tablist" aria-orientation="horizontal">
+    <button class="tab" role="tab" id="t-overview" aria-controls="p-overview" aria-selected="true"><b>01</b>Overview</button>
+    <button class="tab" role="tab" id="t-context" aria-controls="p-context" aria-selected="false" tabindex="-1"><b>02</b>Requirements &amp; Epic</button>
+    <button class="tab" role="tab" id="t-finding" aria-controls="p-finding" aria-selected="false" tabindex="-1"><b>03</b>Core finding</button>
+    <button class="tab" role="tab" id="t-options" aria-controls="p-options" aria-selected="false" tabindex="-1"><b>04</b>Options compared</button>
+    <button class="tab" role="tab" id="t-flows" aria-controls="p-flows" aria-selected="false" tabindex="-1"><b>05</b>Flows &amp; decisions</button>
+    <button class="tab" role="tab" id="t-plan" aria-controls="p-plan" aria-selected="false" tabindex="-1"><b>06</b>Plan &amp; roadmap</button>
+    <button class="tab" role="tab" id="t-risks" aria-controls="p-risks" aria-selected="false" tabindex="-1"><b>07</b>Risks &amp; questions</button>
+    <button class="tab" role="tab" id="t-docs" aria-controls="p-docs" aria-selected="false" tabindex="-1"><b>08</b>Documents</button>
+  </div>
+</nav>
+</div>
+
+<main class="panels">
+
+<section id="p-overview" role="tabpanel" aria-labelledby="t-overview">
+  <div class="panel-head">
+    <div class="eyebrow">Epic VUNG-????? · <!-- epic name --> · Team ?</div>
+    <h1>{{TITLE}}</h1>
+    <p class="panel-dek"><!-- 1-2 sentences: what this ticket really does and why it matters --></p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><dt>Ticket</dt><dd>{{TICKET}}</dd><span class="sub">?</span></div>
+    <div class="stat"><dt>Epic</dt><dd>?%</dd><span class="sub">?/? stories Resolved/Done</span></div>
+    <div class="stat"><dt>Repos touched</dt><dd>?</dd><span class="sub">? team</span></div>
+    <div class="stat"><dt>DB migration</dt><dd>?</dd><span class="sub">?</span></div>
+    <div class="stat"><dt>Release window</dt><dd>?</dd><span class="sub">?</span></div>
+  </div>
+
+  <div class="repolegend">
+    <!-- 1 badge per repo touched. The classes .r-store/.r-pay/.r-comp/.r-web/.r-ext are EXAMPLES from
+         an example ticket; name new CSS variables --repo-<name>/--repo-<name>-soft for another ticket if
+         the number or identity of repos differs — see visual-style.md, section on a new categorical colour. -->
+    <span class="repobadge r-store">repo-name — team, role</span>
+  </div>
+
+  <h2 class="sec">Who calls whom, what changes where</h2>
+  <p class="sec-lede"><!-- why it is worth drawing: how many boxes change, which box is the critical path --></p>
+  <!--
+    EXAMPLE minimal "repo map" SVG (2 lanes). For more lanes, use the coordinate formula
+    in visual-style.md.
+  -->
+  <figure>
+    <div class="plate">
+      <svg class="seq" viewBox="0 0 520 195" role="img" aria-label="One sentence: who calls whom and which box changes">
+        <defs><marker id="arrowReqO" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L8,3.5 L0,7 Z" class="arrow-req-head"/></marker></defs>
+        <line class="arrow-req" x1="160" y1="80" x2="250" y2="80" marker-end="url(#arrowReqO)"/>
+        <text class="chan-label" x="205" y="74">calls</text>
+        <g class="lane-actor"><rect class="lane-box" x="20" y="35" width="140" height="90" rx="9"/><text class="lane-name" x="90" y="73">Customer</text><text class="lane-sub" x="90" y="91">role</text></g>
+        <g class="lane-store"><rect class="lane-box" x="250" y="35" width="170" height="90" rx="9"/><text class="lane-name" x="335" y="73">repo-name</text><text class="lane-sub" x="335" y="91">team</text></g>
+        <line class="tag-line-change" x1="335" y1="125" x2="335" y2="145"/>
+        <g class="tag-change"><rect x="240" y="145" width="190" height="28" rx="6"/><text x="335" y="163" text-anchor="middle">PR-1 · short description</text></g>
+      </svg>
+    </div>
+    <figcaption>Figure 1 — </figcaption>
+  </figure>
+
+  <h2 class="sec">Most important finding</h2>
+  <div class="findgrid">
+    <div class="finding blockbox">
+      <h3>Problem</h3>
+      <p style="margin-bottom:0"></p>
+    </div>
+    <div class="finding okbox">
+      <h3>Solution</h3>
+      <p style="margin-bottom:0"></p>
+    </div>
+  </div>
+</section>
+
+<section id="p-context" role="tabpanel" aria-labelledby="t-context" hidden>
+  <div class="panel-head">
+    <div class="eyebrow">02 · Ticket &amp; Epic</div>
+    <h1>What is really asked</h1>
+    <p class="panel-dek"></p>
+  </div>
+  <div class="reqs">
+    <div class="req"><span class="tag">R1 — ?</span><p></p><span class="src">"verbatim quote"</span></div>
+  </div>
+  <h2 class="sec">Place in the epic</h2>
+  <!-- Line break in a Mermaid label: write &lt;br/&gt;, NOT <br/>. The script reads the source
+       with textContent; the HTML parser swallows the <br/> tag, so the words run together. -->
+  <figure>
+    <div class="plate">
+<pre class="mermaid">
+flowchart LR
+  E["EPIC VUNG-?????&lt;br/&gt;epic name"] --> S1["VUNG-?????&lt;br/&gt;story (this)"]
+</pre>
+    </div>
+    <figcaption>Figure 2 — </figcaption>
+  </figure>
+  <h2 class="sec">Conflicts / release constraints</h2>
+  <div class="finding blockbox"><h3></h3><p style="margin-bottom:0"></p></div>
+</section>
+
+<section id="p-finding" role="tabpanel" aria-labelledby="t-finding" hidden>
+  <div class="panel-head">
+    <div class="eyebrow">03 · Code reading</div>
+    <h1>Core finding</h1>
+    <p class="panel-dek"></p>
+  </div>
+  <div class="finding blockbox"><h3>Problem</h3><p style="margin-bottom:0"></p></div>
+  <div class="finding okbox" style="margin-top:16px"><h3>Solution</h3><p style="margin-bottom:0"></p></div>
+  <h2 class="sec">Backward compatibility</h2>
+  <div class="tablewrap"><table><thead><tr><th>Consumer</th><th>Declared fields</th></tr></thead><tbody>
+    <tr><td></td><td></td></tr>
+  </tbody></table></div>
+</section>
+
+<section id="p-options" role="tabpanel" aria-labelledby="t-options" hidden>
+  <div class="panel-head">
+    <div class="eyebrow">04 · Options</div>
+    <h1>Options compared</h1>
+    <p class="panel-dek"><span class="dots d3">●●●</span> good · <span class="dots d2">●●○</span> medium · <span class="dots d1">●○○</span> poor.</p>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Criterion</th><th class="num">A</th><th class="num">B</th></tr></thead>
+      <tbody>
+        <tr><td>Business correctness</td><td class="num dots d1">●○○</td><td class="num dots d3">●●●</td></tr>
+        <tr class="win"><td>Verdict</td><td class="num"><span class="pill block">rejected</span></td><td class="num"><span class="pill ok">chosen</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h2 class="sec">Why rejected — concrete evidence</h2>
+  <div class="reqs"><div class="req"><span class="tag" style="color:var(--block)">A · REJECTION REASON</span><p></p></div></div>
+</section>
+
+<section id="p-flows" role="tabpanel" aria-labelledby="t-flows" hidden>
+  <div class="panel-head">
+    <div class="eyebrow">05 · Mechanism</div>
+    <h1>Flows &amp; decision tree</h1>
+    <p class="panel-dek"></p>
+  </div>
+
+  <!--
+    HAND-DRAWN SEQUENCE DIAGRAM — coordinate rules (details
+    in visual-style.md):
+      • Each lane: box y=26,height=54,rx=8; cx spaced >= 2*95+40=230 apart if box width=190
+      • Lifeline: x=cx, y1=84 (just below the box), y2 = y of the last row + 32
+      • Even 44px row pitch: first row at y=108, each next row +44
+      • Label sits 8px ABOVE the arrow, x = min(srcCx,dstCx)+8, default text-anchor (start)
+      • Note "over lane": rect width~300-360 centred on that lane's cx, height 30
+      • Arrow colour is SEMANTIC (not the lane colour):
+          request/call      → class="arrow-req"      (black, solid)
+          returned data     → class="arrow-neutral"  (grey, dashed)
+          ALLOWED result    → class="arrow-ok"       (green, dashed)
+          BLOCKED/error     → class="arrow-block"    (red, dashed)
+      • Each <svg> declares its own <defs><marker id="...UNIQUE_IN_THE_PAGE..."> — a duplicate id
+        across 2 svgs on the same page breaks the arrowheads because the DOM shares one id namespace.
+      • lane classes: lane-actor(grey,customer) · lane-store/-pay/-comp/-web(4 standard repos)
+        · lane-ext(orange,dashed,external) · lane-multi(accent border, when 1 box merges 2 repos)
+  -->
+  <figure>
+    <div class="plate">
+      <svg class="seq" viewBox="0 0 700 300" role="img" aria-label="One sentence: what this sequence proves">
+        <defs>
+          <marker id="arrowReqX1" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L8,3.5 L0,7 Z" class="arrow-req-head"/></marker>
+          <marker id="arrowBlkX1" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L8,3.5 L0,7 Z" class="arrow-block-head"/></marker>
+        </defs>
+        <g class="lane-actor"><line class="lifeline" x1="100" y1="84" x2="100" y2="272"/></g>
+        <g class="lane-store"><line class="lifeline" x1="350" y1="84" x2="350" y2="272"/></g>
+        <g class="lane-pay"><line class="lifeline" x1="600" y1="84" x2="600" y2="272"/></g>
+        <g class="lane-actor"><rect class="lane-box" x="5" y="26" width="190" height="54" rx="8"/><text class="lane-name" x="100" y="49">Customer</text><text class="lane-sub" x="100" y="65">role</text></g>
+        <g class="lane-store"><rect class="lane-box" x="255" y="26" width="190" height="54" rx="8"/><text class="lane-name" x="350" y="49">repo-name-A</text><text class="lane-sub" x="350" y="65">team</text></g>
+        <g class="lane-pay"><rect class="lane-box" x="505" y="26" width="190" height="54" rx="8"/><text class="lane-name" x="600" y="49">repo-name-B</text><text class="lane-sub" x="600" y="65">team</text></g>
+        <text class="lbl" x="108" y="100">1  customer action</text>
+        <line class="arrow-req" x1="100" y1="108" x2="350" y2="108" marker-end="url(#arrowReqX1)"/>
+        <text class="lbl" x="358" y="144">2  GET .../endpoint</text>
+        <line class="arrow-req" x1="350" y1="152" x2="600" y2="152" marker-end="url(#arrowReqX1)"/>
+        <rect class="note-box" x="190" y="181" width="320" height="30" rx="6"/>
+        <text class="note-text" x="350" y="200">note: the key condition is found here</text>
+        <text class="lbl lbl-block" x="108" y="232">3  result (e.g. BLOCKED)</text>
+        <line class="arrow-block" x1="350" y1="240" x2="100" y2="240" marker-end="url(#arrowBlkX1)"/>
+      </svg>
+    </div>
+    <figcaption>Figure 3 — </figcaption>
+  </figure>
+
+  <h2 class="sec">Decision tree</h2>
+  <figure>
+    <div class="plate">
+<pre class="mermaid">
+flowchart TD
+  A["Request"] --> B{"Condition?"}
+  B -- No --> OK1["ALLOWED"]
+  B -- Yes --> NG1["BLOCKED"]
+  class OK1 ok
+  class NG1 block
+</pre>
+    </div>
+    <figcaption>Figure 4 — each branch answers one question; the fail-open/fail-closed branch must not be missing</figcaption>
+  </figure>
+
+  <div class="finding warnbox" style="margin-top:20px"><h3>Trap to avoid</h3><p style="margin-bottom:0"></p></div>
+</section>
+
+<section id="p-plan" role="tabpanel" aria-labelledby="t-plan" hidden>
+  <div class="panel-head">
+    <div class="eyebrow">06 · Execution</div>
+    <h1>Plan &amp; roadmap</h1>
+    <p class="panel-dek"></p>
+  </div>
+  <ol class="steps">
+    <li><span class="pr">STEP 0</span><div class="body"><b>Write Acceptance Criteria</b><span></span></div></li>
+    <li><span class="pr"><span class="repobadge r-pay" style="margin-bottom:2px">PR-1</span></span>
+      <div class="body"><b>?</b><span></span><span class="files">repo · path/to/File.java</span></div></li>
+  </ol>
+  <h2 class="sec">Feature flag</h2>
+  <div class="tablewrap"><table><thead><tr><th>Flag</th><th>Default</th><th>Effect</th></tr></thead><tbody>
+    <tr><td><code></code></td><td class="num"></td><td></td></tr>
+  </tbody></table></div>
+  <h2 class="sec">Roadmap</h2>
+  <!-- A ticket of only a few person-days: the gantt renders ~250px tall and the date labels overlap.
+       Then replace this whole <figure> with a roadmap table (.tablewrap, columns Milestone · Task ·
+       Person-days · Depends on). A gantt is worth it only for a roadmap of several weeks. -->
+  <figure>
+    <div class="plate">
+<pre class="mermaid">
+gantt
+    title Roadmap {{TICKET}}
+    dateFormat YYYY-MM-DD
+    axisFormat %d/%m
+    section Preparation
+    Write AC :crit, ac, {{DATE}}, 3d
+</pre>
+    </div>
+    <figcaption>Figure 5 — Mermaid gantt breaks on accented letters in task names in some renderers; write task names without diacritics</figcaption>
+  </figure>
+</section>
+
+<section id="p-risks" role="tabpanel" aria-labelledby="t-risks" hidden>
+  <div class="panel-head">
+    <div class="eyebrow">07 · Not settled</div>
+    <h1>Risks &amp; open questions</h1>
+    <p class="panel-dek"></p>
+  </div>
+  <div class="qgrid">
+    <div class="q"><span class="qid">Q1 · PO</span><b>?</b><p></p><div class="rec"><em>Recommendation</em></div></div>
+  </div>
+  <h2 class="sec">Highest risks</h2>
+  <div class="tablewrap"><table><thead><tr><th>Risk</th><th class="num">Impact</th><th>Mitigation</th></tr></thead><tbody>
+    <tr><td></td><td class="num"><span class="pill block">high</span></td><td></td></tr>
+  </tbody></table></div>
+</section>
+
+<section id="p-docs" role="tabpanel" aria-labelledby="t-docs" hidden>
+  <div class="panel-head">
+    <div class="eyebrow">08 · Reference</div>
+    <h1>Detailed documents</h1>
+    <p class="panel-dek">This page is a summary. The full analysis is in <code>tasks/{{DIRNAME}}/</code>.</p>
+  </div>
+  <div class="files-index">
+    <div><code>01-TICKET-AND-CONTEXT.md</code><span>Jira content, epic, release constraints</span></div>
+    <div><code>02-CODE-ANALYSIS.md</code><span>Code reading by file:line, gaps, risks</span></div>
+    <div><code>03-OPTIONS-EVALUATION.md</code><span>Options and evaluation</span></div>
+    <div><code>04-IMPLEMENTATION-PLAN.md</code><span>AC, PRs, feature flag</span></div>
+    <div><code>05-TEST-PLAN.md</code><span>Unit / IT / E2E / regression / perf</span></div>
+    <div><code>06-DEPLOY-AND-TEST-DATA.md</code><span>Pipeline, environments, test data, rollback</span></div>
+    <div><code>07-ROADMAP-AND-DOD.md</code><span>Roadmap, milestones, Definition of Done</span></div>
+    <div><code>08-OPEN-QUESTIONS.md</code><span>Questions with a default recommendation</span></div>
+    <div><code>diagrams/WORKFLOW.md</code><span>Plain Mermaid version</span></div>
+  </div>
+</section>
+
+</main>
+
+<footer class="pagefoot">
+  <span>{{TICKET}}</span>
+  <span>Epic VUNG-?????</span>
+  <span>Analysis {{DATE}}</span>
+</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- tabs (ARIA tabs pattern: click or arrow keys, one panel visible) ---------- */
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  var panels = Array.prototype.slice.call(document.querySelectorAll('[role="tabpanel"]'));
+
+  function activate(tab) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+    });
+    panels.forEach(function (p) {
+      var show = p.id === tab.getAttribute('aria-controls');
+      p.hidden = !show;
+      if (show) renderPanelDiagrams(p);
+    });
+  }
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () { activate(tab); });
+    tab.addEventListener('keydown', function (e) {
+      var i = tabs.indexOf(tab), next = null;
+      if (e.key === 'ArrowRight') next = tabs[(i + 1) % tabs.length];
+      else if (e.key === 'ArrowLeft') next = tabs[(i - 1 + tabs.length) % tabs.length];
+      else if (e.key === 'Home') next = tabs[0];
+      else if (e.key === 'End') next = tabs[tabs.length - 1];
+      if (next) { e.preventDefault(); activate(next); next.focus(); }
+    });
+  });
+
+  /* ---------- mermaid: loaded lazily, only when a tab that needs it is first opened;
+     this also sidesteps rendering a diagram while its panel is display:none, which
+     some mermaid layouts size incorrectly. ---------- */
+  var mermaidReady = null;
+  var renderedPanels = {};
+
+  function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  function loadMermaid() {
+    if (mermaidReady) return mermaidReady;
+    mermaidReady = new Promise(function (resolve) {
+      if (window.mermaid) { initMermaid(); resolve(); return; }
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js';
+      s.onload = function () { initMermaid(); resolve(); };
+      s.onerror = function () { resolve(); };
+      document.body.appendChild(s);
+    });
+    return mermaidReady;
+  }
+
+  function initMermaid() {
+    try {
+      window.mermaid.initialize({
+        startOnLoad: false,
+        theme: 'base',
+        securityLevel: 'strict',
+        fontFamily: getComputedStyle(document.body).fontFamily,
+        themeVariables: {
+          background: 'transparent',
+          primaryColor: cssVar('--accent-soft'),
+          primaryTextColor: cssVar('--ink'),
+          primaryBorderColor: cssVar('--accent'),
+          secondaryColor: cssVar('--surface-2'),
+          tertiaryColor: cssVar('--surface'),
+          lineColor: cssVar('--ink-3'),
+          textColor: cssVar('--ink'),
+          noteBkgColor: cssVar('--surface-2'),
+          noteTextColor: cssVar('--ink-2'),
+          noteBorderColor: cssVar('--rule-strong'),
+          edgeLabelBackground: cssVar('--ground'),
+          clusterBkg: cssVar('--surface-2'),
+          clusterBorder: cssVar('--rule-strong'),
+          taskTextColor: cssVar('--ink'),
+          taskTextOutsideColor: cssVar('--ink'),
+          activeTaskBkgColor: cssVar('--accent-soft'),
+          activeTaskBorderColor: cssVar('--accent'),
+          critBkgColor: cssVar('--block-soft'),
+          critBorderColor: cssVar('--block'),
+          doneTaskBkgColor: cssVar('--ok-soft'),
+          doneTaskBorderColor: cssVar('--ok'),
+          sectionBkgColor: cssVar('--surface-2'),
+          altSectionBkgColor: cssVar('--surface'),
+          gridColor: cssVar('--rule'),
+          todayLineColor: cssVar('--block')
+        }
+      });
+    } catch (e) { /* leave the text as is if init fails */ }
+  }
+
+  function extraClassDefs() {
+    return '\n'
+      + 'classDef focus fill:' + cssVar('--accent-soft') + ',stroke:' + cssVar('--accent') + ',color:' + cssVar('--accent-ink') + ',stroke-width:2px;\n'
+      + 'classDef ok fill:' + cssVar('--ok-soft') + ',stroke:' + cssVar('--ok') + ',color:' + cssVar('--ok') + ',stroke-width:1.5px;\n'
+      + 'classDef block fill:' + cssVar('--block-soft') + ',stroke:' + cssVar('--block') + ',color:' + cssVar('--block') + ',stroke-width:1.5px;\n';
+  }
+
+  function renderPanelDiagrams(panel, force) {
+    if (!force && renderedPanels[panel.id]) return;
+    var blocks = Array.prototype.slice.call(panel.querySelectorAll('pre.mermaid'));
+    if (!blocks.length) { renderedPanels[panel.id] = true; return; }
+    loadMermaid().then(function () {
+      if (!window.mermaid) return;
+      blocks.forEach(function (b) {
+        // Keep the original source: after render, textContent is replaced by the SVG, so without
+        // saving it the diagram cannot be rebuilt on a theme change.
+        if (b.getAttribute('data-src') === null) b.setAttribute('data-src', b.textContent);
+        var src = b.getAttribute('data-src');
+        if (/^\s*flowchart/i.test(src)) src += extraClassDefs();
+        b.textContent = src;
+        b.removeAttribute('data-processed');
+      });
+      window.mermaid.run({ nodes: blocks }).catch(function () { /* leave the text as is if a diagram has a syntax error */ });
+    });
+    renderedPanels[panel.id] = true;
+  }
+
+  /* ---------- theme: the page follows the host; the button lets the presenter switch ---------- */
+  var THEME_KEY = 'ngvu-presentation-theme';
+  var root = document.documentElement;
+  var toggle = document.getElementById('themeToggle');
+  var themeLabel = document.getElementById('themeLabel');
+
+  function currentTheme() {
+    var stamped = root.getAttribute('data-theme');
+    if (stamped === 'dark' || stamped === 'light') return stamped;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  function syncToggle() {
+    if (!toggle) return;
+    var mode = currentTheme();
+    toggle.setAttribute('data-mode', mode);
+    if (themeLabel) themeLabel.textContent = mode === 'dark' ? 'Dark' : 'Light';
+  }
+
+  try {
+    var saved = localStorage.getItem(THEME_KEY);
+    if (saved === 'dark' || saved === 'light') root.setAttribute('data-theme', saved);
+  } catch (e) { /* browser blocks storage: follow the host theme */ }
+
+  syncToggle();
+
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var next = currentTheme() === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem(THEME_KEY, next); } catch (e) { /* if it cannot be saved, skip it */ }
+      syncToggle();
+      // Hand-drawn SVG uses CSS variables, so it changes at once; Mermaid bakes colours into
+      // the SVG at render time, so the open panel must be re-rendered.
+      if (window.mermaid) {
+        initMermaid();
+        var visible = panels.filter(function (p) { return !p.hidden; })[0];
+        if (visible) renderPanelDiagrams(visible, true);
+      }
+    });
+  }
+
+  var initialPanel = panels.filter(function (p) { return !p.hidden; })[0];
+  if (initialPanel) renderPanelDiagrams(initialPanel);
+})();
+</script>

@@ -1,0 +1,11 @@
+*.bak
+.DS_Store
+Thumbs.db
+desktop.ini
+evals/runs/
+**/evals/results/
+__pycache__/
+*.pyc
+.claude/
+node_modules/
+.venv/

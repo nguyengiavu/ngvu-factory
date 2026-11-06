@@ -1,0 +1,362 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>__TITLE__</title>
+<!--
+  TEMPLATE — evidence-backed report, using the ngvu-ticket-investigation design system.
+  The style (app-bar + tabs + IBM Plex + categorical/semantic tokens) follows
+  references/visual-style.md of the ngvu-ticket-investigation skill (ngvu-factory plugin) — READ THAT FILE
+  before adding a new repo colour or drawing SVG by hand. Do not invent hex values.
+
+  Replace the CONTENT, do not rewrite the CSS. For a tab you do not use, delete both the button and the panel.
+  Required quality blocks: verdict + stats (tab 01), the Current state table, evidence
+  that can be opened, and the Limits tab. See references/quality-bar.md.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@600;700&display=swap">
+<style>
+  :root{
+    --ground:#f5f6f4; --surface:#ffffff; --surface-2:#eef1ee; --plate:#fbfcfa;
+    --ink:#1b1f1d; --ink-2:#4b5a52; --ink-3:#7c8981;
+    --rule:#dfe4de; --rule-strong:#c7cec6;
+    --shadow:0 1px 2px rgba(20,30,25,.05), 0 10px 28px -20px rgba(20,30,25,.35);
+    --accent:#3b5bdb; --accent-ink:#2f4bc0; --accent-soft:#edf0ff;
+    --ok:#2b8a3e;  --ok-soft:#d3f9d8;
+    --warn:#c9750a; --warn-soft:#fff3bf;
+    --block:#c92a2a; --block-soft:#ffe3e3;
+    /* categorical — one hue per repo, fixed across the page. Change per ticket. */
+    --repo-a:#1971c2; --repo-a-soft:#e7f5ff;
+    --repo-b:#c92a2a; --repo-b-soft:#ffe3e3;
+    --repo-c:#2b8a3e; --repo-c-soft:#d3f9d8;
+    --repo-d:#0c8599; --repo-d-soft:#c5f6fa;
+    --repo-e:#d9480f; --repo-e-soft:#ffe8cc;
+    --sans:'IBM Plex Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+    --serif:'IBM Plex Serif',Georgia,'Times New Roman',serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#121614; --surface:#1a201d; --surface-2:#222a26; --plate:#161b19;
+    --ink:#e6ece8; --ink-2:#a9b8b0; --ink-3:#7b8a82;
+    --rule:#2b342f; --rule-strong:#3a453f;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 28px -20px rgba(0,0,0,.8);
+    --accent:#8fa2f5; --accent-ink:#aab8f8; --accent-soft:#1a2242;
+    --ok:#7ee2a8;  --ok-soft:#0f2b1a;
+    --warn:#ffc978; --warn-soft:#33280c;
+    --block:#ffa8a8; --block-soft:#331515;
+    --repo-a:#7cc4fa; --repo-a-soft:#0f2338;
+    --repo-b:#ffa8a8; --repo-b-soft:#331515;
+    --repo-c:#7ee2a8; --repo-c-soft:#0f2b1a;
+    --repo-d:#66d9e8; --repo-d-soft:#0a2a2e;
+    --repo-e:#ffb366; --repo-e-soft:#33210c;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#121614; --surface:#1a201d; --surface-2:#222a26; --plate:#161b19;
+    --ink:#e6ece8; --ink-2:#a9b8b0; --ink-3:#7b8a82;
+    --rule:#2b342f; --rule-strong:#3a453f;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 28px -20px rgba(0,0,0,.8);
+    --accent:#8fa2f5; --accent-ink:#aab8f8; --accent-soft:#1a2242;
+    --ok:#7ee2a8;  --ok-soft:#0f2b1a;
+    --warn:#ffc978; --warn-soft:#33280c;
+    --block:#ffa8a8; --block-soft:#331515;
+    --repo-a:#7cc4fa; --repo-a-soft:#0f2338;
+    --repo-b:#ffa8a8; --repo-b-soft:#331515;
+    --repo-c:#7ee2a8; --repo-c-soft:#0f2b1a;
+    --repo-d:#66d9e8; --repo-d-soft:#0a2a2e;
+    --repo-e:#ffb366; --repo-e-soft:#33210c;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+  code,.mono{font-family:var(--mono)}
+  code{font-size:.86em;background:var(--surface-2);border:1px solid var(--rule);border-radius:5px;padding:.05em .38em}
+  a{color:var(--accent-ink)}
+
+  /* ── app-bar ───────────────────────────────────────────── */
+  .appbar{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--rule)}
+  .appbar-in{max-width:1240px;margin:0 auto;padding:12px 26px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .doc-kind{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink);
+    background:var(--accent-soft);border:1px solid var(--rule);border-radius:6px;padding:4px 9px;white-space:nowrap}
+  .appbar h1{font-family:var(--serif);font-size:16px;font-weight:700;margin:0;letter-spacing:-.01em;flex:1;min-width:220px}
+  .statuschips{display:flex;gap:7px;flex-wrap:wrap}
+  .schip{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);background:var(--surface-2);
+    border:1px solid var(--rule);border-radius:20px;padding:3px 10px;white-space:nowrap}
+  .schip b{color:var(--ink)}
+  #themeToggle{font-family:var(--mono);font-size:12px;color:var(--ink-2);background:var(--surface-2);
+    border:1px solid var(--rule);border-radius:7px;padding:6px 11px;cursor:pointer}
+  #themeToggle:hover{color:var(--accent-ink);border-color:var(--accent)}
+  #themeToggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ── tab bar: MUST wrap, no sideways scroll (visual-style.md §3) ─ */
+  .tabbar{position:sticky;top:53px;z-index:19;background:var(--surface);border-bottom:1px solid var(--rule)}
+  .tabbar-inner{max-width:1240px;margin:0 auto;padding:0 26px;display:flex;flex-wrap:wrap;gap:2px}
+  .tab{font-family:var(--mono);font-size:12.5px;color:var(--ink-2);background:none;border:none;
+    border-bottom:2px solid transparent;padding:11px 13px;cursor:pointer;white-space:nowrap}
+  .tab:hover{color:var(--ink)}
+  .tab[aria-selected="true"]{color:var(--accent-ink);border-bottom-color:var(--accent);font-weight:600}
+  .tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .tab .n{color:var(--ink-3);margin-right:6px}
+  .tab[aria-selected="true"] .n{color:var(--accent)}
+
+  .wrap{max-width:1240px;margin:0 auto;padding:30px 26px 88px}
+  h2{font-family:var(--serif);font-size:clamp(21px,2.6vw,27px);margin:0 0 6px;letter-spacing:-.015em;text-wrap:balance}
+  h3{font-family:var(--sans);font-size:16.5px;font-weight:600;margin:26px 0 8px}
+  .lede{color:var(--ink-2);max-width:78ch;margin:0 0 22px}
+  p{max-width:80ch}
+  section+section{margin-top:34px}
+
+  /* ── verdict banner ────────────────────────────────────── */
+  .verdict{display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:17px 20px;border-radius:12px;
+    background:var(--ok-soft);border:1px solid var(--ok);margin-bottom:22px}
+  .verdict.warn{background:var(--warn-soft);border-color:var(--warn)}
+  .verdict.block{background:var(--block-soft);border-color:var(--block)}
+  .verdict .big{font-family:var(--serif);font-size:27px;font-weight:700;color:var(--ok);line-height:1}
+  .verdict.warn .big{color:var(--warn)} .verdict.block .big{color:var(--block)}
+  .verdict .txt{font-size:14px;color:var(--ink);max-width:80ch}
+
+  /* ── stat tiles ────────────────────────────────────────── */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:1px;
+    background:var(--rule);border:1px solid var(--rule);border-radius:12px;overflow:hidden;margin:20px 0}
+  .stat{background:var(--surface);padding:14px 16px}
+  .stat-k{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px}
+  .stat-v{font-family:var(--serif);font-size:27px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+  .stat-v.ok{color:var(--ok)} .stat-v.warn{color:var(--warn)} .stat-v.block{color:var(--block)}
+  .stat-q{font-size:12.5px;color:var(--ink-2);margin-top:6px}
+
+  /* ── tables ────────────────────────────────────────────── */
+  .tw{overflow-x:auto;border:1px solid var(--rule);border-radius:11px;background:var(--surface);box-shadow:var(--shadow)}
+  table{width:100%;border-collapse:collapse;font-size:13.8px;min-width:520px}
+  th,td{text-align:left;padding:10px 13px;border-bottom:1px solid var(--rule);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  th{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink-3);font-weight:600;background:var(--surface-2)}
+  td.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .st-exists{color:var(--ok);font-weight:600}
+  .st-partial{color:var(--warn);font-weight:600}
+  .st-missing{color:var(--block);font-weight:600}
+
+  /* ── repo identity badge (categorical) ─────────────────── */
+  .repobadge{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:20px;white-space:nowrap;border:1px solid}
+  .r-a{color:var(--repo-a);background:var(--repo-a-soft);border-color:var(--repo-a)}
+  .r-b{color:var(--repo-b);background:var(--repo-b-soft);border-color:var(--repo-b)}
+  .r-c{color:var(--repo-c);background:var(--repo-c-soft);border-color:var(--repo-c)}
+  .r-d{color:var(--repo-d);background:var(--repo-d-soft);border-color:var(--repo-d)}
+  .r-e{color:var(--repo-e);background:var(--repo-e-soft);border-color:var(--repo-e)}
+
+  /* ── result pill (semantic) ────────────────────────────── */
+  .pill{font-family:var(--mono);font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid;white-space:nowrap}
+  .p-ok{color:var(--ok);background:var(--ok-soft);border-color:var(--ok)}
+  .p-warn{color:var(--warn);background:var(--warn-soft);border-color:var(--warn)}
+  .p-block{color:var(--block);background:var(--block-soft);border-color:var(--block)}
+
+  /* ── evidence card ─────────────────────────────────────── */
+  .ev{background:var(--surface);border:1px solid var(--rule);border-radius:12px;overflow:hidden;
+    margin-bottom:18px;box-shadow:var(--shadow)}
+  .ev-h{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+    padding:13px 17px;border-bottom:1px solid var(--rule);background:var(--surface-2)}
+  .ev-id{font-family:var(--mono);font-weight:600;font-size:13.5px}
+  .ev-id .obj{font-family:var(--sans);font-weight:400;color:var(--ink-2);font-size:13.5px;margin-left:10px}
+  .ev-b{padding:15px 17px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:13.5px}
+  .kv .k{font-family:var(--mono);color:var(--ink-2)}
+  .kv .v{font-family:var(--mono)}
+  .kv .v.good{color:var(--ok);font-weight:600}
+  .kv .v.bad{color:var(--block);font-weight:600}
+
+  pre.log{background:var(--plate);color:var(--ink);font-family:var(--mono);font-size:12px;line-height:1.65;
+    border:1px solid var(--rule-strong);border-radius:9px;padding:13px 15px;overflow-x:auto;margin:11px 0 0}
+  pre.log .t{color:var(--ink-3)} pre.log .g{color:var(--ok)} pre.log .w{color:var(--warn)}
+  pre.log .k{color:var(--accent-ink)} pre.log .m{color:var(--ink-3);font-style:italic}
+
+  .loglink{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;font-weight:600;
+    color:var(--accent-ink);text-decoration:none;background:var(--accent-soft);border:1px solid var(--accent);
+    border-radius:8px;padding:7px 12px;margin-top:11px}
+  .loglink:hover{background:var(--surface-2)}
+  .loglink:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ── callout ───────────────────────────────────────────── */
+  .note{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 10px 10px 0;
+    padding:13px 16px;margin:16px 0;font-size:13.8px;max-width:86ch}
+  .note.warn{border-left-color:var(--warn);background:var(--warn-soft)}
+  .note.block{border-left-color:var(--block);background:var(--block-soft)}
+  .note b{color:var(--accent-ink)}
+  .note.warn b{color:var(--warn)} .note.block b{color:var(--block)}
+  .cap{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin:9px 2px 0;max-width:88ch}
+  .conf{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--warn);
+    border:1px solid var(--warn);border-radius:4px;padding:1px 5px;margin-left:5px;white-space:nowrap}
+
+  footer{max-width:1240px;margin:0 auto;padding:18px 26px 40px;border-top:1px solid var(--rule);
+    font-family:var(--mono);font-size:11.5px;color:var(--ink-3);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="appbar"><div class="appbar-in">
+  <span class="doc-kind">__DOCUMENT KIND__</span>
+  <h1>__TITLE: a statement or a question, not a label__</h1>
+  <div class="statuschips">
+    <span class="schip">Env <b>__ENVIRONMENT__</b></span>
+    <span class="schip">Build <b>__COMMIT__</b></span>
+    <span class="schip">__YYYY-MM-DD__</span>
+  </div>
+  <button id="themeToggle" type="button" aria-label="Toggle light/dark theme">◐ theme</button>
+</div></div>
+
+<div class="tabbar"><div class="tabbar-inner" role="tablist" aria-label="Report sections">
+  <button class="tab" role="tab" id="t1" aria-controls="p1" aria-selected="true"><span class="n">01</span>Overview</button>
+  <button class="tab" role="tab" id="t2" aria-controls="p2" aria-selected="false"><span class="n">02</span>How to read</button>
+  <button class="tab" role="tab" id="t3" aria-controls="p3" aria-selected="false"><span class="n">03</span>Current state</button>
+  <button class="tab" role="tab" id="t4" aria-controls="p4" aria-selected="false"><span class="n">04</span>Evidence</button>
+  <button class="tab" role="tab" id="t5" aria-controls="p5" aria-selected="false"><span class="n">05</span>Findings</button>
+  <button class="tab" role="tab" id="t6" aria-controls="p6" aria-selected="false"><span class="n">06</span>Limits</button>
+  <button class="tab" role="tab" id="t7" aria-controls="p7" aria-selected="false"><span class="n">07</span>Recommendations</button>
+  <button class="tab" role="tab" id="t8" aria-controls="p8" aria-selected="false"><span class="n">08</span>Reproduce</button>
+</div></div>
+
+<div class="wrap">
+
+<!-- ══ 01 — this panel MUST stand on its own: it is what shows when the link is shared ══ -->
+<section id="p1" role="tabpanel" aria-labelledby="t1">
+  <h2>__One-line conclusion__</h2>
+  <div class="verdict">
+    <span class="big">__VERDICT__</span>
+    <span class="txt">__One sentence in plain language.__ __One sentence on where the evidence is.__</span>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-k">__label__</div><div class="stat-v ok">__number__</div><div class="stat-q">__context__</div></div>
+    <div class="stat"><div class="stat-k">__label__</div><div class="stat-v">__number__</div><div class="stat-q">__context__</div></div>
+    <div class="stat"><div class="stat-k">__label__</div><div class="stat-v warn">__number__</div><div class="stat-q">__context__</div></div>
+    <div class="stat"><div class="stat-k">__label__</div><div class="stat-v">__number__</div><div class="stat-q">__context__</div></div>
+  </div>
+  <h3>The three most important findings</h3>
+  <p class="lede">__One sentence per finding, with its consequence — not only the symptom.__</p>
+</section>
+
+<!-- ══ 02 — glossary for readers outside the team. This section is why the PO can read the report ══ -->
+<section id="p2" role="tabpanel" aria-labelledby="t2" hidden>
+  <h2>How to read this report</h2>
+  <p class="lede">Terms in plain language, and which numbers are a good sign.</p>
+  <div class="tw"><table>
+    <thead><tr><th style="width:210px">Term</th><th>What it means here</th></tr></thead>
+    <tbody><tr><td class="mono">__term__</td><td>__what it means — and which number is a GOOD sign__</td></tr></tbody>
+  </table></div>
+  <div class="note"><b>In one sentence:</b> __what the bug does → what the fix does → which number proves it__</div>
+</section>
+
+<!-- ══ 03 — the "Today" table: current state before the work to do ══ -->
+<section id="p3" role="tabpanel" aria-labelledby="t3" hidden>
+  <h2>Current state</h2>
+  <p class="lede">Each sub-behaviour and its real state, with concrete evidence.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Part of the flow</th><th style="width:56%">Today</th></tr></thead>
+    <tbody>
+      <tr><td>__sub-behaviour__</td><td><span class="st-exists">Exists</span> — __evidence__</td></tr>
+      <tr><td>__sub-behaviour__</td><td><span class="st-partial">Partial</span> — __exactly what is missing__</td></tr>
+      <tr><td>__sub-behaviour__</td><td><span class="st-missing">Missing</span> — __observable consequence__</td></tr>
+    </tbody>
+  </table></div>
+  <p class="cap">Most of it already exists, so this is a delta — that affects effort, not scope.</p>
+</section>
+
+<!-- ══ 04 — evidence: every claim can be opened with a link ══ -->
+<section id="p4" role="tabpanel" aria-labelledby="t4" hidden>
+  <h2>Evidence</h2>
+  <div class="ev">
+    <div class="ev-h">
+      <div class="ev-id">__TC-1 · ROLE__<span class="obj">__one-line goal__</span></div>
+      <span class="pill p-ok">✔ PASS</span>
+    </div>
+    <div class="ev-b">
+      <div class="kv">
+        <span class="k">observed</span><span class="v good">__distribution, not total__</span>
+        <span class="k">expected</span><span class="v">__countable threshold__</span>
+      </div>
+      <pre class="log"><span class="t">__timestamp__</span> <span class="g">INFO</span> [__Logger__] __trimmed log line__
+<span class="m">   ── __note on the line that matters__ ──</span></pre>
+      <a class="loglink" href="__URL_CLOUD_LOGGING__" target="_blank" rel="noopener">Open this query in Cloud Logging ↗</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 05 — findings, including rejected hypotheses ══ -->
+<section id="p5" role="tabpanel" aria-labelledby="t5" hidden>
+  <h2>Findings</h2>
+  <h3>Two hypotheses — only one survives</h3>
+  <p>__The first hypothesis and the evidence that rejected it.__ Dropping this section makes the reader walk the path you already walked.</p>
+  <h3>Why this time and not another time</h3>
+  <p>__Usually two conditions must coincide — name both, and say what happens if only one is present.__</p>
+</section>
+
+<!-- ══ 06 — LIMITS: do not delete this tab ══ -->
+<section id="p6" role="tabpanel" aria-labelledby="t6" hidden>
+  <h2>What this report has not proven</h2>
+  <div class="note warn"><b>Limits:</b> __state the gap in your own evidence plainly, and how you closed
+  it if you did__<span class="conf">hypothesis</span></div>
+  <p class="cap">Finding the gap in your own evidence and closing it is the clearest sign of a trustworthy document.</p>
+</section>
+
+<!-- ══ 07 ══ -->
+<section id="p7" role="tabpanel" aria-labelledby="t7" hidden>
+  <h2>Recommendations</h2>
+  <div class="tw"><table>
+    <thead><tr><th style="width:52px">#</th><th>Action</th><th style="width:34%">What it blocks</th></tr></thead>
+    <tbody><tr><td class="mono">1</td><td>__concrete action__</td><td>__which link in the mechanism chain__</td></tr></tbody>
+  </table></div>
+</section>
+
+<!-- ══ 08 ══ -->
+<section id="p8" role="tabpanel" aria-labelledby="t8" hidden>
+  <h2>Reproduce &amp; environment</h2>
+  <div class="tw"><table><tbody>
+    <tr><th style="width:210px">Cluster / namespace</th><td class="mono">__value__</td></tr>
+    <tr><th>Deployed image</th><td class="mono">__value__</td></tr>
+    <tr><th>Evidence source</th><td class="mono">__value__</td></tr>
+    <tr><th>Rerun with</th><td class="mono">__command__</td></tr>
+  </tbody></table></div>
+  <p class="cap">What was changed and what was NOT changed: __state it__</p>
+</section>
+
+</div>
+
+<footer>
+  <span>__document kind__ · __audience__</span>
+  <span>__environment__ · __date__ · __method__</span>
+</footer>
+
+<script>
+(function(){
+  /* ── theme: data-theme > localStorage > prefers-color-scheme ── */
+  var root=document.documentElement, btn=document.getElementById('themeToggle');
+  try{ var saved=localStorage.getItem('report-theme'); if(saved) root.setAttribute('data-theme',saved); }catch(e){}
+  function current(){
+    var s=root.getAttribute('data-theme');
+    if(s) return s;
+    return (window.matchMedia && window.matchMedia('(prefers-color-scheme:dark)').matches) ? 'dark' : 'light';
+  }
+  if(btn) btn.addEventListener('click',function(){
+    var next = current()==='dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme',next);
+    try{ localStorage.setItem('report-theme',next); }catch(e){}
+  });
+
+  /* ── tabs: hide with the hidden attribute, not display:none ── */
+  var tabs=[].slice.call(document.querySelectorAll('[role="tab"]'));
+  function select(tab){
+    tabs.forEach(function(t){
+      var on = t===tab, panel=document.getElementById(t.getAttribute('aria-controls'));
+      t.setAttribute('aria-selected', on?'true':'false');
+      t.tabIndex = on?0:-1;
+      if(panel) panel.hidden = !on;
+    });
+  }
+  tabs.forEach(function(tab,i){
+    tab.tabIndex = tab.getAttribute('aria-selected')==='true' ? 0 : -1;
+    tab.addEventListener('click',function(){ select(tab); });
+    tab.addEventListener('keydown',function(e){
+      var d = e.key==='ArrowRight'?1 : e.key==='ArrowLeft'?-1 : 0;
+      if(!d) return;
+      e.preventDefault();
+      var next = tabs[(i+d+tabs.length)%tabs.length];
+      select(next); next.focus();
+    });
+  });
+})();
+</script>

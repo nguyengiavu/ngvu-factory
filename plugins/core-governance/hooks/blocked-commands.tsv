@@ -1,0 +1,23 @@
+# Shell commands the guard blocks (Bash and PowerShell tools). One rule per line:
+# <ERE, case-insensitive><TAB><reason><TAB><optional ERE: allow when it also matches>
+# Matched against the raw hook JSON, so "S" below is the start of a command segment:
+# start of text, a quote, ; & | ( ` or an escaped newline.
+# git push, git aliases and acli (Jira) writes are checked by ngvu_guardrails.py (parses the
+# command; allows only the factory's ticket/epic branch push). This file covers everything else.
+# Policy source: ~/.claude/rules/safe-command-policy.md and approval-policy.md.
+(^|["'`;&|(]|\\n)[[:space:]]*git([[:space:]]+-C[[:space:]]+[^[:space:]]+)?[[:space:]]+reset[[:space:]]+--hard	git reset --hard discards work
+(^|["'`;&|(]|\\n)[[:space:]]*git([[:space:]]+-C[[:space:]]+[^[:space:]]+)?[[:space:]]+clean[[:space:]]+-[a-z]*f	git clean -f deletes untracked files
+(^|["'`;&|(]|\\n)[[:space:]]*git([[:space:]]+-C[[:space:]]+[^[:space:]]+)?[[:space:]]+branch[[:space:]]+(-d|-D|--delete)([[:space:]]|$)	deleting branches is a human action
+(^|["'`;&|(]|\\n)[[:space:]]*git([[:space:]]+-C[[:space:]]+[^[:space:]]+)?[[:space:]]+(tag[[:space:]]+(-d|--delete)|worktree[[:space:]]+remove)	deleting tags or worktrees is a human action
+--no-verify|--no-gpg-sign	skipping hooks or signing needs explicit human consent
+kubectl([[:space:]]+[^[:space:]]+)*[[:space:]]+(apply|create|delete|replace|patch|edit|scale|drain|cordon|uncordon|label|annotate|set|rollout[[:space:]]+(undo|restart|pause|resume))([[:space:]]|"|$)	mutating kubectl needs approval (use --dry-run)	--dry-run
+helm[[:space:]]+(install|upgrade|uninstall|delete|rollback)([[:space:]]|"|$)	helm release change needs approval (use --dry-run)	--dry-run
+terraform[[:space:]]+(apply|destroy|import|state[[:space:]]+(rm|mv|push))([[:space:]]|"|$)	terraform state change needs approval
+gcloud([[:space:]]+[^[:space:]]+)*[[:space:]]+(deploy|delete|update|create|submit|add-iam-policy-binding|remove-iam-policy-binding|set-iam-policy|update-traffic|rollback)([[:space:]]|"|$)	mutating gcloud (deploy, IAM, resources) needs approval
+(gsutil|gcloud[[:space:]]+storage)([[:space:]]+[^[:space:]]+)*[[:space:]]+(rm|rb|iam[[:space:]]+ch|acl[[:space:]]+ch)([[:space:]]|"|$)	deleting or re-permissioning GCS needs approval
+allUsers|allAuthenticatedUsers	making a resource public needs approval
+(^|[/\\"'[:space:]])release(_candidate)?\.sh	release scripts push branches/tags; human only
+vault[[:space:]]+(read|write|delete|kv[[:space:]]+(get|put|delete|destroy|patch|rollback)|secrets[[:space:]]+(enable|disable)|policy[[:space:]]+(write|delete)|token[[:space:]]+create)	Vault reads print secret values and writes change them; both need approval
+mongo(sh)?([[:space:]]|\.exe).*(dropDatabase|\.drop\(|dropIndex(es)?\(|deleteMany\(|updateMany\(|\.remove\()	destructive Mongo operation needs approval
+(^|["'`;&|(]|\\n)[[:space:]]*rm[[:space:]]+(-[a-z]*r[a-z]*f|-[a-z]*f[a-z]*r|-r[[:space:]]+-f|-f[[:space:]]+-r)	rm -rf needs approval
+Remove-Item([[:space:]]+[^[:space:]]+)*[[:space:]]+-Recurse	recursive delete needs approval

@@ -1,0 +1,54 @@
+# <expect: block|allow|ask><TAB><tool><TAB><command, or file path for Edit/Write>
+block	Bash	git push
+allow	Bash	git -C /d/workspace/services/example_core push -u origin ngvu/vung-1-x
+allow	Bash	git -C /d/workspace/services/example_core push -u origin ngvu/vung-1/EPIC-x
+block	Bash	git -C /d/workspace/services/example_core push origin HEAD:master
+block	Bash	git push origin ngvu/vung-1-x:master
+block	PowerShell	git push origin master
+block	Bash	git -c alias.p=push p origin ngvu/vung-1-x
+block	Bash	acli jira workitem transition --key VUNG-1 --status Done
+allow	Bash	grep -rn "git push origin master" docs
+block	Bash	cd /d/x && git push --force
+allow	Bash	git status
+allow	Bash	git log --oneline -5
+allow	Bash	git commit -m "VUNG-1: fix null check"
+block	Bash	git reset --hard HEAD~1
+allow	Bash	git reset HEAD src/A.java
+block	Bash	git clean -fd
+block	Bash	git branch -D ngvu/vung-1-x
+allow	Bash	git branch --show-current
+block	Bash	git worktree remove D:/workspace/.ngvu-worktrees/VUNG-1/example_core
+block	Bash	git commit --no-verify -m x
+block	Bash	kubectl apply -f deploy.yaml
+allow	Bash	kubectl apply -f deploy.yaml --dry-run=server
+allow	Bash	kubectl get pods -n vung
+allow	Bash	kubectl logs example-docs-123 -n vung
+block	Bash	kubectl -n dev rollout undo deploy/example-docs
+block	Bash	kubectl delete pod example-docs-123
+block	Bash	gcloud run deploy svc --image x
+allow	Bash	gcloud logging read "resource.type=k8s_container" --freshness=1h --limit=20
+allow	Bash	gcloud container clusters list
+block	Bash	gcloud projects add-iam-policy-binding p --member=user:x --role=roles/viewer
+block	Bash	gsutil iam ch allUsers:objectViewer gs://bucket
+block	Bash	bash D:/workspace/infra/example_release/release_candidate.sh
+block	Bash	vault kv put secret/vung/x a=b
+block	Bash	vault kv get secret/vung/x
+block	Bash	mongosh --eval "db.docs.deleteMany({})"
+allow	Bash	mongosh --eval "db.docs.find().limit(1)"
+allow	Bash	grep -rn "deleteMany(" src
+block	Bash	rm -rf target
+allow	Bash	rm build.log
+allow	Bash	helm template chart
+block	Bash	helm upgrade vung chart
+allow	Bash	helm upgrade vung chart --dry-run
+block	Bash	terraform apply
+allow	Bash	terraform plan
+block	PowerShell	Remove-Item -Recurse -Force C:\tmp\x
+allow	PowerShell	Get-ChildItem D:\workspace
+ask	Edit	D:\workspace\infra\example_deploy\example-docs\deployment.yaml
+ask	Write	D:/workspace/services/example_core/docker-compose.yml
+ask	Write	D:\workspace\services\example_core\.env
+ask	Edit	D:\workspace\services\example_core\credential\key.txt
+ask	Write	C:\Users\dev\.claude\settings.json
+allow	Edit	D:\workspace\services\example_core\src\main\java\A.java
+allow	Write	D:\workspace\services\example_core\.envrc

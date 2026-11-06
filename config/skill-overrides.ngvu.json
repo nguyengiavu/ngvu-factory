@@ -1,0 +1,7 @@
+{
+  "skillOverrides": {
+    "debug": "off",
+    "diagnosing-bugs": "off",
+    "code-review": "off"
+  }
+}

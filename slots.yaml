@@ -1,0 +1,46 @@
+# One owner per role. A competing skill is turned off for ngvu work through
+# config/skill-overrides.ngvu.json (Claude Code "skillOverrides"), never deleted.
+# status: decided = approved by the user; proposed = not yet approved, nothing is turned off.
+# To replace an owner: change `owner`, move the old one to `off`, run the slot's evals (`tools/run-evals.sh`), commit.
+
+bugs.diagnose:
+  owner: superpowers:systematic-debugging        # plugin superpowers@claude-plugins-official
+  off: [debug, diagnosing-bugs]
+  status: decided                                # 2026-10-19
+  why: three skills claimed "debug this / something is broken"; the superpowers one is the most
+    process-driven (root cause before fix) and is maintained upstream.
+
+review.pr:
+  owner: pr-review                               # plugins/ngvu-engineering/skills/pr-review
+  off: [code-review]
+  keep: [superpowers:requesting-code-review]     # process step after a task, not a PR review
+  status: decided                                # 2026-10-19
+  why: pr-review already writes the ngvu review file (<TICKET-KEY>-<desc>.md) and covers the
+    Big-Tech comparison; code-review overlapped on "review this branch / PR".
+
+review.ticket-branch:
+  owner: ngvu-factory (5 lenses)                # inside /ngvu-factory only
+  status: decided
+
+dev.tdd:
+  owner: superpowers:test-driven-development
+  off_when_decided: [tdd]
+  status: proposed                               # not approved yet - nothing turned off
+
+design.grill:
+  owner: grilling
+  off_when_decided: [grill-me, grill-with-docs]
+  status: proposed                               # not approved yet - nothing turned off
+
+router.daily:
+  owner: daily-router
+  status: decided
+
+bugs.triage:
+  owner: ngvu-triage                            # plugins/ngvu-factory/skills/ngvu-triage
+  routes_to: [incident-response, ngvu-ticket-investigation]
+  status: decided                                # B7, 2026-10-19
+
+factory.retro:
+  owner: /ngvu-factory retro                    # C4; the generic `retro` skill stays for coding sessions
+  status: decided                                # 2026-10-19

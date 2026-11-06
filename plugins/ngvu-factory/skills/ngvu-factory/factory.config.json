@@ -1,0 +1,29 @@
+{
+  "workspace": "D:/workspace",
+  "team": "ngvu",
+  "branchPrefix": "ngvu/",
+  "ownTeams": ["ngvu"],
+  "legacyOwnerAliases": {},
+  "maxResumes": 2,
+  "paths": {
+    "repoRoots": [
+      { "path": "D:/workspace/services", "kind": "java-service" },
+      { "path": "D:/workspace/nextjs", "kind": "nextjs" }
+    ],
+    "tasks": "D:/workspace/tasks",
+    "worktrees": "D:/workspace/.ngvu-worktrees"
+  },
+  "unitTest": {
+    "java-service": "mvn clean install -DskipITs=true -B",
+    "nextjs": "npx nx affected -t test typecheck --base={base} --head=HEAD"
+  },
+  "verify": {
+    "defaultEnv": "dev",
+    "logProject": { "default": "example-nonprod", "performance": "example-performance" },
+    "maxWindowHours": 6,
+    "cloudBuildProject": null
+  },
+  "factoryRepo": "D:/workspace/ngvu-ai-factory",
+  "reportLanguage": "en",
+  "jira": { "site": "example.atlassian.net", "project": "VUNG" }
+}

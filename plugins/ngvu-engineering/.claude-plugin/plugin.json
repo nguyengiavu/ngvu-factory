@@ -1,0 +1,8 @@
+{
+  "name": "ngvu-engineering",
+  "version": "0.1.0",
+  "description": "ngvu engineering skills: pr-review, daily-router, ticket-workflow, backend, database, cloud and Kubernetes, logs and observability, architecture and security reviews.",
+  "author": { "name": "ngvu" },
+  "license": "MIT",
+  "keywords": ["ngvu", "engineering", "review", "gcp", "database"]
+}

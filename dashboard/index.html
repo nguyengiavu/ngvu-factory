@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ngvu-factory board</title>
+<style>
+  :root { --bg:#f7f7f5; --card:#fff; --ink:#1d1d1b; --muted:#6b6b66; --line:#e2e2dc;
+          --pass:#1f7a4d; --changes:#b3261e; --pending:#8a8a84; --human:#fff1d6; --human-line:#e0a800; --ready:#e6f4ec; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#151514; --card:#1f1f1d; --ink:#ececea; --muted:#a3a39d; --line:#33332f;
+            --pass:#5cc68f; --changes:#ff8a80; --pending:#77776f; --human:#3a2f12; --human-line:#e0a800; --ready:#173226; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { display:flex; justify-content:space-between; align-items:baseline; gap:12px; padding:16px; border-bottom:1px solid var(--line); }
+  h1 { font-size:18px; margin:0; } #status { color:var(--muted); font-size:12px; }
+  main { padding:16px; max-width:1200px; margin:0 auto; }
+  section.group { margin-bottom:24px; } section.group h2 { font-size:15px; margin:0 0 8px; }
+  .epicmeta { color:var(--muted); font-size:12px; margin-bottom:8px; overflow-wrap:anywhere; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px; cursor:pointer; }
+  .card.needs-human { background:var(--human); border-color:var(--human-line); }
+  .card.ready-for-pr { background:var(--ready); }
+  .key { font-weight:600; } .stage { float:right; font-size:12px; color:var(--muted); }
+  .summary { margin:6px 0; color:var(--muted); }
+  .chips { display:flex; gap:4px; flex-wrap:wrap; }
+  .chip { font-size:11px; padding:2px 6px; border-radius:10px; border:1px solid currentColor; }
+  .chip.pass { color:var(--pass); } .chip.changes { color:var(--changes); } .chip.pending { color:var(--pending); }
+  dialog { width:min(900px, 92vw); max-height:85vh; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); }
+  dialog pre { white-space:pre-wrap; font:12px/1.5 ui-monospace, Consolas, monospace; }
+  .files a { display:inline-block; margin:0 10px 4px 0; color:inherit; }
+  .empty { color:var(--muted); }
+</style>
+</head>
+<body>
+<header><h1>ngvu-factory</h1><span id="status">loading...</span></header>
+<main id="board"></main>
+<dialog id="viewer"><form method="dialog"><button>Close</button></form><div class="files" id="files"></div><pre id="content"></pre></dialog>
+<script src="board.js"></script>
+<script>
+  const B = window.KFBoard;
+  const POLL_MS = 5000;
+
+  async function text(url) { const r = await fetch(url, { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); return r.text(); }
+  async function json(url) { try { return JSON.parse(await text(url)); } catch (e) { return null; } }
+
+  async function load() {
+    const dirs = B.listEntries(await text('/tasks/')).filter(e => e.endsWith('/'));
+    const epics = [], tickets = [];
+    await Promise.all(dirs.map(async d => {
+      const e = await json('/tasks/' + d + 'factory/epic.json');
+      if (e) epics.push(Object.assign(e, { _dir: d }));
+      const t = await json('/tasks/' + d + 'factory/ticket.json');
+      if (t) tickets.push(Object.assign(t, { _dir: d }));
+    }));
+    epics.sort((a, b) => a.key < b.key ? -1 : 1);
+    return { epics, tickets };
+  }
+
+  function el(tag, cls, txt) { const n = document.createElement(tag); if (cls) n.className = cls; if (txt != null) n.textContent = txt; return n; }
+
+  function card(t) {
+    const c = el('div', 'card ' + t.stage);
+    c.append(el('span', 'key', t.key), el('span', 'stage', B.stageLabel(t.stage) + (t.round ? ' - round ' + t.round : '')));
+    c.append(el('div', 'summary', t.summary || ''));
+    const chips = el('div', 'chips');
+    for (const [k, label] of B.LENSES) if ((t.reviews || {})[k] !== 'n/a') chips.append(el('span', 'chip ' + B.chipClass((t.reviews || {})[k]), label));
+    c.append(chips);
+    c.onclick = () => openFiles(t._dir + 'factory/');
+    return c;
+  }
+
+  function render({ epics, tickets }) {
+    const board = document.getElementById('board');
+    board.replaceChildren();
+    const groups = B.groupByEpic(epics, tickets);
+    if (!groups.length) { board.append(el('p', 'empty', 'No factory runs found under /tasks/.')); return; }
+    for (const g of groups) {
+      const s = el('section', 'group');
+      s.append(el('h2', null, g.epic ? g.epic.key + ' - ' + (g.epic.summary || '') : 'Standalone tickets'));
+      if (g.epic) {
+        const kids = g.epic.children || [];
+        const waiting = kids.filter(c => c.state === 'needs-investigation').length;
+        s.append(el('div', 'epicmeta', g.epic.epicBranch + ' - ' + kids.length + ' children, ' + waiting + ' need investigation'));
+      }
+      const cards = el('div', 'cards');
+      g.tickets.forEach(t => cards.append(card(t)));
+      if (!g.tickets.length) cards.append(el('p', 'empty', 'No child has started yet.'));
+      s.append(cards);
+      board.append(s);
+    }
+  }
+
+  async function walk(base, prefix) {
+    const out = [];
+    for (const e of B.listEntries(await text(base + prefix))) {
+      if (e.endsWith('/')) { if (e !== 'claims/') out.push(...await walk(base, prefix + e)); }
+      else if (e.endsWith('.md') || e.endsWith('.json')) out.push(prefix + e);
+    }
+    return out;
+  }
+
+  async function openFiles(dir) {
+    const base = '/tasks/' + dir;
+    const files = document.getElementById('files'), content = document.getElementById('content');
+    files.replaceChildren(); content.textContent = '';
+    for (const f of await walk(base, '')) {
+      const a = el('a', null, f); a.href = '#';
+      a.onclick = async ev => { ev.preventDefault(); content.textContent = await text(base + f); };
+      files.append(a);
+    }
+    document.getElementById('viewer').showModal();
+  }
+
+  async function poll() {
+    try { render(await load()); document.getElementById('status').textContent = 'updated ' + new Date().toLocaleTimeString(); }
+    catch (e) { document.getElementById('status').textContent = 'cannot read /tasks/ (' + e.message + ')'; }
+  }
+  poll(); setInterval(poll, POLL_MS);
+</script>
+</body>
+</html>

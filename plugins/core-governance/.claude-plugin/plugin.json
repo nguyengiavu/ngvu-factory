@@ -1,0 +1,8 @@
+{
+  "name": "core-governance",
+  "version": "0.2.0",
+  "description": "Always-on ngvu safety layer: approval / data-protection / cost rules, governance skills, and PreToolUse guards that allow only the factory's vung-<n> branch push and block protected pushes, Jira writes, deploy, IAM, Vault and destructive commands.",
+  "author": { "name": "ngvu" },
+  "license": "MIT",
+  "keywords": ["ngvu", "governance", "safety", "hooks"]
+}

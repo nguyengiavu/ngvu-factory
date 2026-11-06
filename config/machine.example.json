@@ -1,0 +1,18 @@
+{
+  "_comment": "Example of ~/.claude/ngvu-factory/machine.json. deploy/bootstrap writes it from -Team and -Workspace; it stays on your machine, never in this repo. Optional keys: serviceCatalog (path to a Markdown service catalog); personalRoots (folders of your own repos where the guard lets you push any non-protected branch, e.g. [\"D:/Personal\"]; leave it out on a work-only machine); unitTest.<kind> (default java-service: mvn clean install -DskipITs=true -B; a .bat path runs through cmd); reportLanguage (language of investigation reports, default en). The reportLanguage and unitTest values below are examples only; leave them out to use the defaults.",
+  "workspace": "D:/workspace",
+  "factoryRepo": "D:/workspace/ngvu-ai-factory",
+  "team": "ngvu",
+  "branchPrefix": "ngvu/",
+  "ownTeams": ["ngvu"],
+  "paths": {
+    "repoRoots": [
+      {"path": "D:/workspace/services", "kind": "java-service"},
+      {"path": "D:/workspace/nextjs", "kind": "nextjs"}
+    ],
+    "tasks": "D:/workspace/tasks",
+    "worktrees": "D:/workspace/.ngvu-worktrees"
+  },
+  "unitTest": {"java-service": "mvn clean install -DskipITs=true -B"},
+  "reportLanguage": "vi"
+}

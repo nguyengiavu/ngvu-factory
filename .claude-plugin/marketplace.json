@@ -1,0 +1,29 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "ngvu-ai-factory",
+  "description": "Private marketplace for the ngvu AI development factory (all ngvu teams); install with deploy/ngvu-kit.ps1.",
+  "owner": { "name": "ngvu" },
+  "plugins": [
+    {
+      "name": "core-governance",
+      "description": "Always-on ngvu safety layer: rules, governance skills, PreToolUse guard.",
+      "version": "0.2.0",
+      "source": "./plugins/core-governance",
+      "category": "security"
+    },
+    {
+      "name": "ngvu-factory",
+      "description": "ngvu ticket factory: investigation to a pushed ticket branch plus PR link and description.",
+      "version": "0.8.0",
+      "source": "./plugins/ngvu-factory",
+      "category": "development"
+    },
+    {
+      "name": "ngvu-engineering",
+      "description": "ngvu engineering skills: PR review, routing, backend, database, cloud, observability, architecture.",
+      "version": "0.1.0",
+      "source": "./plugins/ngvu-engineering",
+      "category": "development"
+    }
+  ]
+}

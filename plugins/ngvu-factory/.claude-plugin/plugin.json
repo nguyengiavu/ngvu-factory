@@ -1,0 +1,8 @@
+{
+  "name": "ngvu-factory",
+  "version": "0.8.0",
+  "description": "ngvu ticket factory for every ngvu team (team, workspace and paths per machine): ticket and epic investigation, intake, spec, build, 4-5 lens review and approval for one VUNG ticket; pushes the ticket branch and stops at the GitHub PR link plus PR-description.md (a human opens and merges the PR).",
+  "author": { "name": "ngvu" },
+  "license": "MIT",
+  "keywords": ["ngvu", "vung", "factory", "review"]
+}

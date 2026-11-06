@@ -1,0 +1,8 @@
+# File paths for which Edit/Write asks the human first (never silently allowed).
+# <ERE, case-insensitive, matched against the raw hook JSON><TAB><reason>
+# Path separators appear as / or as \\ (escaped backslash) in the JSON.
+"file_path"[[:space:]]*:[[:space:]]*"[^"]*example_deploy	example_deploy holds prod manifests and image tags (deploy = approval)
+"file_path"[[:space:]]*:[[:space:]]*"[^"]*docker-compose[^"]*"	compose files may hold dev/staging secrets
+"file_path"[[:space:]]*:[[:space:]]*"[^"]*(/|\\\\)\.env(\.[^"/\\]*)?"	.env files hold secrets
+"file_path"[[:space:]]*:[[:space:]]*"[^"]*(/|\\\\)credentials?(/|\\\\)	credential folders hold secrets
+"file_path"[[:space:]]*:[[:space:]]*"[^"]*(/|\\\\)\.claude(/|\\\\)settings(\.local)?\.json"	changing Claude settings can disable these guards

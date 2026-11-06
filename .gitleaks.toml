@@ -1,0 +1,14 @@
+# gitleaks config for this repo: the default rules plus reviewed false positives only.
+# Run: gitleaks git --redact .   and   gitleaks dir --redact .   (tests/test-gitleaks.sh does both)
+# Add an allowlist entry only after a human checked the hit is not a secret; keep it narrow
+# (one file and one pattern), never a whole rule or folder.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "frontend-architecture skill: 'tokens' means design tokens in a table row, not a credential"
+condition = "AND"
+paths = ['''plugins/ngvu-engineering/skills/frontend-architecture/SKILL\.md''']
+regexTarget = "line"
+regexes = ['''Tailwind/CSS-Modules/vanilla-extract/CSS-in-JS, tokens, Radix/shadcn/MUI''']

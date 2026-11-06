@@ -1,0 +1,9 @@
+# Every clone gets LF, whatever core.autocrlf says: bash scripts, hooks, templates and JSON are
+# shared byte for byte across Windows, macOS and Linux. Binary files are detected by Git.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.zip binary
+*.woff binary
+*.woff2 binary
+*.ttf binary

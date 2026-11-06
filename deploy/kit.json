@@ -1,0 +1,14 @@
+{
+  "_comment": "What deploy/bootstrap.sh installs on a machine. Change it in a commit, like any other factory file.",
+  "marketplace": "ngvu-ai-factory",
+  "plugins": ["core-governance", "ngvu-factory", "ngvu-engineering"],
+  "minClaudeVersion": "2.1.295",
+  "defaultWorkspace": "D:/workspace",
+  "rulesFrom": "plugins/core-governance/rules",
+  "skillOverrides": { "debug": "off", "diagnosing-bugs": "off", "code-review": "off" },
+  "upstreamSkills": {
+    "_comment": "Third-party skills slots.yaml or the docs mention; not shipped here (origin/license not recorded). doctor only reports them.",
+    "superpowers@claude-plugins-official": "plugin: /plugin install superpowers@claude-plugins-official",
+    "graphify": "skill from its upstream (optional, NGVU-CONTEXT navigation aid)"
+  }
+}

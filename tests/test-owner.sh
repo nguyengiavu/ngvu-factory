@@ -1,0 +1,16 @@
+source "$(dirname "$0")/lib/assert.sh"
+T=$(kf_tmp); kf_test_config "$T"; O="$KF_S/owner.sh"
+mkdir -p "$T/own" "$T/mixed" "$T/none" "$T/empty"
+printf 'apiVersion: backstage.io/v1alpha1\nkind: Component\nspec:\n  owner: group:default/team-a\n' > "$T/own/catalog-info.yaml"
+printf 'spec:\n  owner: group:default/team-a\n---\nspec:\n  owner: "group:default/team-b"\n' > "$T/mixed/catalog-info.yaml"
+printf 'spec:\n  type: service\n' > "$T/empty/catalog-info.yaml"
+assert_eq "ngvu" "$(bash "$O" "$T/own")" "team-a alias maps to ngvu"
+assert_exit 0 "own repo" bash "$O" --is-own "$T/own"
+assert_eq "ngvu
+team-b" "$(bash "$O" "$T/mixed")" "all owners listed, sorted"
+assert_exit 14 "foreign owner present" bash "$O" --is-own "$T/mixed"
+assert_exit 15 "no catalog" bash "$O" "$T/none"
+assert_exit 15 "no owner line" bash "$O" "$T/empty"
+printf '\357\273\277' > "$T/bom.json" && cat "$KF_CONFIG" >> "$T/bom.json"
+assert_exit 0 "owner works with a BOM config" env KF_CONFIG="$T/bom.json" bash "$O" --is-own "$T/own"
+kf_finish
